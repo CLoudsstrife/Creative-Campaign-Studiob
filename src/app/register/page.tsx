@@ -42,7 +42,7 @@ export default function RegisterPage() {
       });
 
       if (error) {
-        setMessage(error.message);
+        setMessage("Pendaftaran gagal. Periksa email dan persyaratan password, lalu coba lagi.");
         return;
       }
 
@@ -52,11 +52,7 @@ export default function RegisterPage() {
     } catch (error) {
       console.error("Register error:", error);
 
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Terjadi kesalahan yang tidak diketahui."
-      );
+      setMessage("Terjadi kesalahan yang tidak diketahui.");
     } finally {
       setLoading(false);
     }

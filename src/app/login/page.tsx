@@ -30,9 +30,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setMessage(
-          "Login gagal: " + error.message
-        );
+        setMessage("Email atau password salah.");
         return;
       }
 

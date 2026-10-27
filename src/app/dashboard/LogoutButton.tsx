@@ -14,17 +14,22 @@ export default function LogoutButton() {
     setLoading(true);
     setError("");
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signOut();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError("Logout gagal. Silakan coba lagi.");
+        return;
+      }
+
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      setError("Terjadi kesalahan saat logout. Silakan coba lagi.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.replace("/login");
-    router.refresh();
   }
 
   return (
@@ -39,7 +44,9 @@ export default function LogoutButton() {
       </button>
 
       {error && (
-        <p className="mt-2 text-sm text-red-400">{error}</p>
+        <p className="mt-2 text-sm text-red-400" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );
