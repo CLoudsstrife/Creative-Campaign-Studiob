@@ -27,12 +27,25 @@ type ApiResponse = {
 const inputClass =
   "mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500";
 
+const labelClass = "text-sm font-medium text-slate-200";
+
 export default function CampaignGeneratorForm() {
   const [brandName, setBrandName] = useState("");
   const [product, setProduct] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
+
+  const [campaignObjective, setCampaignObjective] =
+    useState("Brand Awareness");
+  const [customObjective, setCustomObjective] = useState("");
+
+  const [usp, setUsp] = useState("");
+  const [audiencePainPoint, setAudiencePainPoint] = useState("");
+
   const [platform, setPlatform] = useState("Instagram");
+  const [customPlatform, setCustomPlatform] = useState("");
+
   const [tone, setTone] = useState("Friendly");
+  const [customTone, setCustomTone] = useState("");
 
   const [result, setResult] = useState<CampaignResult | null>(null);
   const [error, setError] = useState("");
@@ -67,6 +80,21 @@ export default function CampaignGeneratorForm() {
 
     if (loading || saving) return;
 
+    const effectiveObjective =
+      campaignObjective === "Other"
+        ? customObjective.trim()
+        : campaignObjective;
+
+    const effectivePlatform =
+      platform === "Other" ? customPlatform.trim() : platform;
+
+    const effectiveTone = tone === "Other" ? customTone.trim() : tone;
+
+    if (!effectiveObjective || !effectivePlatform || !effectiveTone) {
+      setError("Mohon isi semua pilihan khusus yang masih kosong.");
+      return;
+    }
+
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
@@ -87,11 +115,14 @@ export default function CampaignGeneratorForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          brandName,
-          product,
-          targetAudience,
-          platform,
-          tone,
+          brandName: brandName.trim(),
+          product: product.trim(),
+          targetAudience: targetAudience.trim(),
+          campaignObjective: effectiveObjective,
+          usp: usp.trim(),
+          audiencePainPoint: audiencePainPoint.trim(),
+          platform: effectivePlatform,
+          tone: effectiveTone,
         }),
         signal: controller.signal,
       });
@@ -135,17 +166,22 @@ export default function CampaignGeneratorForm() {
   async function handleSaveCampaign() {
     if (!result || saving || saved) return;
 
+    const effectivePlatform =
+      platform === "Other" ? customPlatform.trim() : platform;
+
+    const effectiveTone = tone === "Other" ? customTone.trim() : tone;
+
     setSaving(true);
     setSaveMessage("");
     setSaveError("");
 
     try {
       const response = await saveAICampaign({
-        brandName,
-        product,
-        targetAudience,
-        platform,
-        tone,
+        brandName: brandName.trim(),
+        product: product.trim(),
+        targetAudience: targetAudience.trim(),
+        platform: effectivePlatform,
+        tone: effectiveTone,
         result,
       });
 
@@ -173,8 +209,9 @@ export default function CampaignGeneratorForm() {
   return (
     <div>
       <form onSubmit={handleGenerate} className="space-y-5">
+        {/* Brand name */}
         <div>
-          <label htmlFor="brandName" className="text-sm font-medium">
+          <label htmlFor="brandName" className={labelClass}>
             Nama Brand *
           </label>
           <input
@@ -188,8 +225,9 @@ export default function CampaignGeneratorForm() {
           />
         </div>
 
+        {/* Product or service */}
         <div>
-          <label htmlFor="product" className="text-sm font-medium">
+          <label htmlFor="product" className={labelClass}>
             Produk atau Layanan *
           </label>
           <textarea
@@ -204,8 +242,9 @@ export default function CampaignGeneratorForm() {
           />
         </div>
 
+        {/* Target audience */}
         <div>
-          <label htmlFor="targetAudience" className="text-sm font-medium">
+          <label htmlFor="targetAudience" className={labelClass}>
             Target Audiens *
           </label>
           <textarea
@@ -220,9 +259,82 @@ export default function CampaignGeneratorForm() {
           />
         </div>
 
+        {/* Campaign objective */}
+        <div>
+          <label htmlFor="campaignObjective" className={labelClass}>
+            Campaign Objective *
+          </label>
+          <select
+            id="campaignObjective"
+            value={campaignObjective}
+            onChange={(e) => setCampaignObjective(e.target.value)}
+            required
+            className={inputClass}
+          >
+            <option value="Brand Awareness">Brand Awareness</option>
+            <option value="Engagement">Engagement</option>
+            <option value="Website Traffic">Website Traffic</option>
+            <option value="Lead Generation">Lead Generation</option>
+            <option value="Sales / Conversion">Sales / Conversion</option>
+            <option value="Product Launch">Product Launch</option>
+            <option value="Customer Retention">Customer Retention</option>
+            <option value="Other">Other</option>
+          </select>
+
+          {campaignObjective === "Other" && (
+            <input
+              type="text"
+              value={customObjective}
+              onChange={(e) => setCustomObjective(e.target.value)}
+              placeholder="Masukkan tujuan campaign"
+              maxLength={200}
+              required
+              className={inputClass}
+              aria-label="Tujuan campaign lainnya"
+            />
+          )}
+        </div>
+
+        {/* Unique selling proposition */}
+        <div>
+          <label htmlFor="usp" className={labelClass}>
+            Unique Selling Proposition (Opsional)
+          </label>
+          <textarea
+            id="usp"
+            value={usp}
+            onChange={(e) => setUsp(e.target.value)}
+            rows={3}
+            maxLength={1000}
+            placeholder="Apa keunggulan unik produk dibandingkan alternatif lain?"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            Contoh: harga lebih terjangkau, bahan ramah lingkungan, atau
+            layanan lebih cepat.
+          </p>
+        </div>
+
+        {/* Audience pain point */}
+        <div>
+          <label htmlFor="audiencePainPoint" className={labelClass}>
+            Audience Pain Point (Opsional)
+          </label>
+          <textarea
+            id="audiencePainPoint"
+            value={audiencePainPoint}
+            onChange={(e) => setAudiencePainPoint(e.target.value)}
+            rows={3}
+            maxLength={1000}
+            placeholder="Apa masalah, kebutuhan, atau keinginan target audiens?"
+            className={inputClass}
+          />
+        </div>
+
+        {/* Platform and tone */}
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label htmlFor="platform" className="text-sm font-medium">
+            <label htmlFor="platform" className={labelClass}>
               Platform *
             </label>
             <select
@@ -239,11 +351,25 @@ export default function CampaignGeneratorForm() {
               <option value="LinkedIn">LinkedIn</option>
               <option value="Website">Website</option>
               <option value="Multi-platform">Multi-platform</option>
+              <option value="Other">Other</option>
             </select>
+
+            {platform === "Other" && (
+              <input
+                type="text"
+                value={customPlatform}
+                onChange={(e) => setCustomPlatform(e.target.value)}
+                placeholder="Masukkan platform pilihanmu"
+                maxLength={100}
+                required
+                className={inputClass}
+                aria-label="Platform lainnya"
+              />
+            )}
           </div>
 
           <div>
-            <label htmlFor="tone" className="text-sm font-medium">
+            <label htmlFor="tone" className={labelClass}>
               Tone of Voice *
             </label>
             <select
@@ -259,10 +385,27 @@ export default function CampaignGeneratorForm() {
               <option value="Funny">Funny</option>
               <option value="Inspirational">Inspirational</option>
               <option value="Persuasive">Persuasive</option>
+              <option value="Empathetic">Empathetic</option>
+              <option value="Luxury">Luxury</option>
+              <option value="Other">Other</option>
             </select>
+
+            {tone === "Other" && (
+              <input
+                type="text"
+                value={customTone}
+                onChange={(e) => setCustomTone(e.target.value)}
+                placeholder="Masukkan tone of voice pilihanmu"
+                maxLength={100}
+                required
+                className={inputClass}
+                aria-label="Tone of voice lainnya"
+              />
+            )}
           </div>
         </div>
 
+        {/* Generation progress */}
         {loading && (
           <div
             className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-5"
@@ -309,6 +452,7 @@ export default function CampaignGeneratorForm() {
           </div>
         )}
 
+        {/* Generation error */}
         {error && (
           <p
             role="alert"
@@ -325,7 +469,9 @@ export default function CampaignGeneratorForm() {
         >
           {loading ? (
             <>
-              <span className="animate-spin" aria-hidden="true">⟳</span>
+              <span className="animate-spin" aria-hidden="true">
+                ⟳
+              </span>
               Sedang membuat campaign...
             </>
           ) : (
@@ -334,6 +480,7 @@ export default function CampaignGeneratorForm() {
         </button>
       </form>
 
+      {/* AI-generated result */}
       {result && (
         <section
           aria-live="polite"
