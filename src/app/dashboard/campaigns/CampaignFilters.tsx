@@ -342,8 +342,6 @@ export default function CampaignFilters({ campaigns }: Props) {
 }
 
 function DeleteCampaignButton({ campaignId }: { campaignId: string }) {
-  // Komponen delete tetap diimpor dari file yang sudah ada.
-  // Implementasi tombol delete ditangani oleh komponen asli di bawah.
   return <DeleteButtonWrapper campaignId={campaignId} />;
 }
 

@@ -64,7 +64,7 @@ export default function NewCampaignForm() {
           id="description"
           name="description"
           rows={4}
-          maxLength={5000}
+          maxLength={3000}
           placeholder="Jelaskan tujuan dan ide campaign..."
           className={inputClass}
         />

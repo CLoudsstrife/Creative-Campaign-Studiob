@@ -1,19 +1,24 @@
 
+import Link from "next/link";
+
 const features = [
   {
     number: "01",
     title: "Campaign Workspace",
-    description: "Organize campaign briefs, objectives, audiences, and platforms in one place.",
+    description:
+      "Organize campaign briefs, objectives, audiences, and platforms in one place.",
   },
   {
     number: "02",
     title: "AI Campaign Generator",
-    description: "Turn creative briefs into campaign concepts and actionable ideas.",
+    description:
+      "Turn creative briefs into campaign concepts and actionable ideas.",
   },
   {
     number: "03",
     title: "Content Studio",
-    description: "Develop hooks, captions, and content ideas for your chosen platform.",
+    description:
+      "Develop hooks, captions, and content ideas for your chosen platform.",
   },
 ];
 
@@ -21,9 +26,10 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#f7f7f4] text-[#20231f]">
       <nav className="flex items-center justify-between border-b border-black/10 px-6 py-5 md:px-12">
-        <a href="/" className="text-xl font-bold tracking-tight">
+        <Link href="/" className="text-xl font-bold tracking-tight">
           creativeflow<span className="text-emerald-700">.</span>
-        </a>
+        </Link>
+
         <span className="text-sm text-neutral-500">
           AI-powered creative workspace
         </span>
@@ -52,20 +58,28 @@ export default function Home() {
           >
             Explore workspace
           </a>
+
           <span className="rounded-full border border-black/15 px-6 py-3 text-sm text-neutral-600">
             Portfolio project · 2026
           </span>
         </div>
       </section>
 
-      <section id="features" className="mx-auto max-w-6xl px-6 pb-24 md:px-12">
+      <section
+        id="features"
+        className="mx-auto max-w-6xl px-6 pb-24 md:px-12"
+      >
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-emerald-800">THE WORKSPACE</p>
+            <p className="text-sm font-medium text-emerald-800">
+              THE WORKSPACE
+            </p>
+
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">
               Everything starts with an idea.
             </h2>
           </div>
+
           <p className="max-w-sm text-sm leading-6 text-neutral-500">
             Three core tools for turning a brief into creative output.
           </p>
@@ -80,9 +94,11 @@ export default function Home() {
               <p className="text-sm font-medium text-emerald-800">
                 {feature.number}
               </p>
+
               <h3 className="mt-8 text-xl font-semibold">
                 {feature.title}
               </h3>
+
               <p className="mt-3 text-sm leading-6 text-neutral-600">
                 {feature.description}
               </p>

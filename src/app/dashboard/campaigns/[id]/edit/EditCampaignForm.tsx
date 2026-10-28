@@ -81,7 +81,7 @@ export default function EditCampaignForm({ campaign }: Props) {
           id="description"
           name="description"
           rows={4}
-          maxLength={5000}
+          maxLength={3000}
           defaultValue={campaign.description}
           className={inputClass}
         />

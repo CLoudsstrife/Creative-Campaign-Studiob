@@ -12,6 +12,9 @@ const gemini = new GoogleGenAI({
   apiKey,
   httpOptions: {
     timeout: 30_000,
+    retryOptions: {
+      attempts: 1,
+    },
   },
 });
 
@@ -56,8 +59,21 @@ function isTemporaryError(error: unknown): boolean {
   const message =
     error instanceof Error ? error.message : String(error);
 
+  const status =
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error
+      ? Number(error.status)
+      : undefined;
+
   return (
-    /\b(429|500|502|503|504)\b/.test(message) ||
+    status === 408 ||
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    /\b(408|429|500|502|503|504)\b/.test(message) ||
     /UNAVAILABLE|RESOURCE_EXHAUSTED|INTERNAL|DEADLINE_EXCEEDED/i.test(
       message
     )
@@ -78,7 +94,7 @@ export async function generateAIText(
 
     try {
       const response = await gemini.models.generateContent({
-        model: "gemini-3.8-flash",
+        model: "gemini-3.6-flash",
         contents: prompt,
         config: {
           abortSignal: signal,

@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateAIText } from "@/lib/gemini";
+import { aiGenerationRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,13 @@ const CONTENT_IDEA_LIMITS = {
   description: 1500,
 } as const;
 
+class RequestBodyTooLargeError extends Error {
+  constructor() {
+    super("Ukuran request terlalu besar.");
+    this.name = "RequestBodyTooLargeError";
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return (
     typeof value === "object" &&
@@ -48,8 +56,68 @@ function isValidText(
   );
 }
 
+async function readBodyWithLimit(
+  request: Request,
+  maxBytes: number
+): Promise<string> {
+  if (!request.body) {
+    return "";
+  }
+
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const parts: string[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      if (request.signal.aborted) {
+        throw (
+          request.signal.reason ??
+          new DOMException("Request dibatalkan.", "AbortError")
+        );
+      }
+
+      const { done, value } = await reader.read();
+
+      if (done) {
+        break;
+      }
+
+      totalBytes += value.byteLength;
+
+      if (totalBytes > maxBytes) {
+        try {
+          await reader.cancel("Ukuran request terlalu besar.");
+        } catch {
+          // Request body mungkin sudah ditutup.
+        }
+
+        throw new RequestBodyTooLargeError();
+      }
+
+      parts.push(decoder.decode(value, { stream: true }));
+    }
+
+    parts.push(decoder.decode());
+
+    if (request.signal.aborted) {
+      throw (
+        request.signal.reason ??
+        new DOMException("Request dibatalkan.", "AbortError")
+      );
+    }
+
+    return parts.join("");
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export async function POST(request: Request) {
-  // Periksa autentikasi sebelum memproses request AI.
+  // 1. Autentikasi pengguna sebelum memproses request.
+  let userId: string;
+
   try {
     const supabase = await createClient();
 
@@ -64,6 +132,8 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+
+    userId = user.id;
   } catch (error) {
     console.error("Campaign generation authentication failed:", error);
 
@@ -73,12 +143,11 @@ export async function POST(request: Request) {
     );
   }
 
-  // Hentikan pemrosesan jika request sudah dibatalkan.
   if (request.signal.aborted) {
     return new Response(null, { status: 204 });
   }
 
-  // Tolak request dengan tipe konten yang tidak sesuai.
+  // 2. Validasi tipe konten.
   const contentType = request.headers.get("content-type") ?? "";
 
   if (!contentType.toLowerCase().includes("application/json")) {
@@ -88,7 +157,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Batasi ukuran request sebelum parsing JSON.
+  // 3. Periksa ukuran request.
   const contentLength = request.headers.get("content-length");
 
   if (contentLength !== null) {
@@ -109,23 +178,22 @@ export async function POST(request: Request) {
   let body: unknown;
 
   try {
-    const rawBody = await request.text();
+    const rawBody = await readBodyWithLimit(
+      request,
+      MAX_REQUEST_SIZE
+    );
 
+    body = JSON.parse(rawBody);
+  } catch (error) {
     if (request.signal.aborted) {
       return new Response(null, { status: 204 });
     }
 
-    if (rawBody.length > MAX_REQUEST_SIZE) {
+    if (error instanceof RequestBodyTooLargeError) {
       return NextResponse.json(
         { error: "Ukuran request terlalu besar." },
         { status: 413 }
       );
-    }
-
-    body = JSON.parse(rawBody);
-  } catch {
-    if (request.signal.aborted) {
-      return new Response(null, { status: 204 });
     }
 
     return NextResponse.json(
@@ -141,7 +209,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Validasi semua input sebelum memanggil Gemini.
+  // 4. Validasi semua input.
   for (const [field, maxLength] of Object.entries(INPUT_LIMITS)) {
     if (!isValidText(body[field], maxLength)) {
       return NextResponse.json(
@@ -196,15 +264,61 @@ Buat tepat 3 contentIdeas yang spesifik, realistis, dan sesuai platform.
 Semua field teks harus berupa string.
 `;
 
+  // 5. Rate limit berdasarkan ID pengguna Supabase.
+  // Jika layanan rate limiter gagal, hentikan request dengan 503
+  // daripada membiarkan request AI berjalan tanpa perlindungan.
+  if (request.signal.aborted) {
+    return new Response(null, { status: 204 });
+  }
+
+  try {
+    const rateLimit = await aiGenerationRateLimit.limit(userId);
+
+    if (!rateLimit.success) {
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((rateLimit.reset - Date.now()) / 1000)
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Batas penggunaan AI tercapai. Silakan tunggu sebelum mencoba lagi.",
+          retryAfterSeconds,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(retryAfterSeconds),
+            "X-RateLimit-Limit": String(rateLimit.limit),
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+          },
+        }
+      );
+    }
+  } catch (error) {
+    if (request.signal.aborted) {
+      return new Response(null, { status: 204 });
+    }
+
+    console.error("Campaign generation rate limit check failed:", error);
+
+    return NextResponse.json(
+      {
+        error:
+          "Layanan pembatasan request sedang bermasalah. Silakan coba lagi nanti.",
+      },
+      { status: 503 }
+    );
+  }
+
+  // 6. Jalankan Gemini hanya setelah request lolos rate limit.
   try {
     const aiStartedAt = Date.now();
 
     console.info("[Campaign Generator] Gemini request started.");
 
-    const aiText = await generateAIText(
-      prompt,
-      request.signal
-    );
+    const aiText = await generateAIText(prompt, request.signal);
 
     if (request.signal.aborted) {
       console.info(
@@ -246,7 +360,6 @@ Semua field teks harus berupa string.
       );
     }
 
-    // Validasi panjang dan isi semua field teks hasil AI.
     const normalized: Record<string, string> = {};
 
     for (const [field, maxLength] of Object.entries(OUTPUT_LIMITS)) {
@@ -301,14 +414,12 @@ Semua field teks harus berupa string.
       callToAction: normalized.callToAction,
     };
 
-    // Jangan mengirim hasil jika request dibatalkan sebelum respons.
     if (request.signal.aborted) {
       return new Response(null, { status: 204 });
     }
 
     return NextResponse.json({ result });
   } catch (error) {
-    // Pembatalan bukan error generasi biasa.
     if (request.signal.aborted) {
       console.info(
         "[Campaign Generator] Request cancelled by client."
@@ -317,7 +428,6 @@ Semua field teks harus berupa string.
       return new Response(null, { status: 204 });
     }
 
-    // Detail error hanya dicatat di server.
     console.error("Campaign generation failed:", error);
 
     return NextResponse.json(
