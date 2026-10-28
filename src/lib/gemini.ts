@@ -11,7 +11,7 @@ if (!apiKey) {
 const gemini = new GoogleGenAI({
   apiKey,
   httpOptions: {
-    timeout: 30_000,
+    timeout: 22_000,
     retryOptions: {
       attempts: 1,
     },
@@ -19,12 +19,9 @@ const gemini = new GoogleGenAI({
 });
 
 const MAX_ATTEMPTS = 2;
-const RETRY_DELAY_MS = 1_000;
+const RETRY_DELAY_MS = 1_500;
 
-function wait(
-  ms: number,
-  signal?: AbortSignal
-): Promise<void> {
+function wait(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(
@@ -42,16 +39,13 @@ function wait(
     function handleAbort() {
       clearTimeout(timer);
       signal?.removeEventListener("abort", handleAbort);
-
       reject(
         signal?.reason ??
           new DOMException("Request dibatalkan.", "AbortError")
       );
     }
 
-    signal?.addEventListener("abort", handleAbort, {
-      once: true,
-    });
+    signal?.addEventListener("abort", handleAbort, { once: true });
   });
 }
 
@@ -67,12 +61,7 @@ function isTemporaryError(error: unknown): boolean {
       : undefined;
 
   return (
-    status === 408 ||
-    status === 429 ||
-    status === 500 ||
-    status === 502 ||
-    status === 503 ||
-    status === 504 ||
+    [408, 429, 500, 502, 503, 504].includes(status ?? 0) ||
     /\b(408|429|500|502|503|504)\b/.test(message) ||
     /UNAVAILABLE|RESOURCE_EXHAUSTED|INTERNAL|DEADLINE_EXCEEDED/i.test(
       message
@@ -98,6 +87,8 @@ export async function generateAIText(
         contents: prompt,
         config: {
           abortSignal: signal,
+          maxOutputTokens: 2048,
+          responseMimeType: "application/json",
         },
       });
 

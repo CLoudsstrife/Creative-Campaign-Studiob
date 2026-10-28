@@ -5,6 +5,7 @@ import { generateAIText } from "@/lib/gemini";
 import { aiGenerationRateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const MAX_REQUEST_SIZE = 10_000;
 
