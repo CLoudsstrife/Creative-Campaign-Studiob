@@ -35,8 +35,8 @@ export default async function EditAIPage({ params }: Props) {
 
   if (!campaign.aiResult) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <main className="app-background min-h-screen px-6 py-10 text-white">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-white/[0.08] bg-[#111019] p-6">
           <h1 className="text-2xl font-bold">
             Hasil AI tidak ditemukan
           </h1>
@@ -47,7 +47,7 @@ export default async function EditAIPage({ params }: Props) {
 
           <a
             href={`/dashboard/campaigns/${campaign.id}`}
-            className="mt-5 inline-block text-blue-400 hover:text-blue-300"
+            className="mt-5 inline-block text-violet-400 hover:text-violet-300"
           >
             Kembali ke detail campaign
           </a>
@@ -89,9 +89,9 @@ export default async function EditAIPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+    <main className="app-background min-h-screen px-6 py-10 text-white">
       <div className="mx-auto max-w-4xl">
-        <p className="text-sm font-medium tracking-widest text-blue-400">
+        <p className="text-sm font-medium tracking-widest text-violet-400">
           CREATIVEFLOW AI
         </p>
 

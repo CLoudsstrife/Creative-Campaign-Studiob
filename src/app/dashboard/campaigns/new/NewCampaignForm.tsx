@@ -23,7 +23,7 @@ export default function NewCampaignForm() {
   }, [state.success, router]);
 
   const inputClass =
-    "mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500";
+    "mt-2 w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500";
 
   return (
     <form action={formAction} className="space-y-5">
@@ -138,7 +138,7 @@ export default function NewCampaignForm() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-[#5232ff] px-5 py-3 font-medium transition hover:bg-[#7258ff] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending ? "Menyimpan..." : "Simpan Campaign"}
         </button>
@@ -146,7 +146,7 @@ export default function NewCampaignForm() {
         <button
           type="button"
           onClick={() => router.push("/dashboard/campaigns")}
-          className="rounded-lg border border-slate-700 px-5 py-3 font-medium transition hover:bg-slate-800"
+          className="rounded-lg border border-white/10 px-5 py-3 font-medium transition hover:bg-slate-800"
         >
           Batal
         </button>

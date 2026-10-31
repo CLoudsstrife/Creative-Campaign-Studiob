@@ -8,6 +8,19 @@ type ContentIdea = {
   title: string;
   format: string;
   description: string;
+  hook?: string;
+  concept?: string;
+  keyPoints?: string[];
+  visualDirection?: string;
+  caption?: string;
+  callToAction?: string;
+  workflowStatus?: "idea" | "draft" | "review" | "ready" | "published";
+  scheduledAt?: string;
+};
+
+type GroundedSource = {
+  title: string;
+  url: string;
 };
 
 type CampaignAIResult = {
@@ -17,12 +30,19 @@ type CampaignAIResult = {
   keyMessage: string;
   contentIdeas: ContentIdea[];
   callToAction: string;
+  selectedIdeaIndex?: number;
+  claimsToVerify?: string[];
+  sources?: GroundedSource[];
   input?: {
     brandName?: string;
     product?: string;
     targetAudience?: string;
     platform?: string;
     tone?: string;
+    brandContext?: string;
+    contentPillars?: string;
+    editorialRules?: string;
+    useGoogleSearch?: boolean;
   };
 };
 
@@ -44,9 +64,11 @@ type Props = {
 
 export default function DownloadCampaignPDF({ campaign }: Props) {
   const [downloading, setDownloading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   function handleDownload() {
     setDownloading(true);
+    setErrorMessage("");
 
     try {
       const pdf = new jsPDF({
@@ -156,7 +178,12 @@ export default function DownloadCampaignPDF({ campaign }: Props) {
           pdf.setFontSize(11);
           pdf.setTextColor(31, 41, 55);
 
-          const ideaTitle = `${index + 1}. ${idea.title} (${idea.format})`;
+          const selected =
+            campaign.aiResult?.selectedIdeaIndex === index
+              ? " · IDE PILIHAN"
+              : "";
+
+          const ideaTitle = `${index + 1}. ${idea.title} (${idea.format})${selected}`;
           const ideaTitleLines = pdf.splitTextToSize(
             ideaTitle,
             contentWidth
@@ -170,11 +197,53 @@ export default function DownloadCampaignPDF({ campaign }: Props) {
 
           y += 1;
           addParagraph(idea.description);
+          addField("Status produksi", idea.workflowStatus || "idea");
+
+          if (idea.scheduledAt) {
+            addField(
+              "Jadwal publikasi",
+              new Intl.DateTimeFormat("id-ID", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }).format(new Date(idea.scheduledAt))
+            );
+          }
+
+          if (idea.hook) addField("Hook", idea.hook);
+          if (idea.concept) addField("Angle dan konsep", idea.concept);
+
+          idea.keyPoints?.forEach((point, pointIndex) =>
+            addField(`Alur ${pointIndex + 1}`, point)
+          );
+
+          if (idea.visualDirection) {
+            addField("Arahan visual", idea.visualDirection);
+          }
+
+          if (idea.caption) addField("Draft caption", idea.caption);
+          if (idea.callToAction) {
+            addField("CTA konten", idea.callToAction);
+          }
+
           y += 2;
         });
 
         addHeading("Call to Action");
         addParagraph(ai.callToAction);
+
+        if (ai.claimsToVerify?.length) {
+          addHeading("Klaim yang Perlu Dicek");
+          ai.claimsToVerify.forEach((claim, index) =>
+            addField(`Klaim ${index + 1}`, claim)
+          );
+        }
+
+        if (ai.sources?.length) {
+          addHeading("Sumber Web untuk Ditinjau");
+          ai.sources.forEach((source, index) => {
+            addField(`Sumber ${index + 1}`, `${source.title}\n${source.url}`);
+          });
+        }
 
         if (ai.input) {
           addHeading("Input AI");
@@ -182,6 +251,9 @@ export default function DownloadCampaignPDF({ campaign }: Props) {
           addField("Target Audiens", ai.input.targetAudience);
           addField("Platform", ai.input.platform);
           addField("Tone", ai.input.tone);
+          addField("Konteks brand", ai.input.brandContext);
+          addField("Pilar konten", ai.input.contentPillars);
+          addField("Pedoman editorial", ai.input.editorialRules);
         }
       }
 
@@ -210,20 +282,73 @@ export default function DownloadCampaignPDF({ campaign }: Props) {
       pdf.save(`${filename}.pdf`);
     } catch (error) {
       console.error("Gagal membuat PDF:", error);
-      window.alert("PDF gagal dibuat. Silakan coba kembali.");
+      setErrorMessage("PDF gagal dibuat. Silakan coba kembali.");
     } finally {
       setDownloading(false);
     }
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleDownload}
-      disabled={downloading}
-      className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {downloading ? "Menyiapkan PDF..." : "Download PDF"}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleDownload}
+        disabled={downloading}
+        className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {downloading ? "Menyiapkan PDF..." : "Download PDF"}
+      </button>
+
+      {errorMessage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="pdf-error-title"
+          aria-describedby="pdf-error-description"
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-red-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v4m0 4h.01M10.29 3.86l-8.1 14.02A2 2 0 003.92 21h16.16a2 2 0 001.73-3.12l-8.1-14.02a2 2 0 00-3.46 0z"
+                />
+              </svg>
+            </div>
+
+            <h2
+              id="pdf-error-title"
+              className="text-lg font-semibold text-white"
+            >
+              Gagal Membuat PDF
+            </h2>
+
+            <p
+              id="pdf-error-description"
+              className="mt-2 text-sm leading-relaxed text-slate-400"
+            >
+              {errorMessage}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setErrorMessage("")}
+              className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

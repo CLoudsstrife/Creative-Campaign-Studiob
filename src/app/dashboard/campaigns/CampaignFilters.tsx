@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { campaignPhotos } from "@/lib/campaign-visuals";
 
 type Campaign = {
   id: string;
@@ -112,7 +113,7 @@ export default function CampaignFilters({ campaigns }: Props) {
 
   return (
     <>
-      <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+      <section className="mb-6 rounded-2xl border border-white/[0.08] bg-[#111019] p-5">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="lg:col-span-3">
             <label
@@ -128,7 +129,7 @@ export default function CampaignFilters({ campaigns }: Props) {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari judul, brand, target audiens, platform..."
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-violet-500"
             />
           </div>
 
@@ -144,7 +145,7 @@ export default function CampaignFilters({ campaigns }: Props) {
               id="status-filter"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-3 py-3 text-sm text-white outline-none focus:border-violet-500"
             >
               <option value="all">Semua Status</option>
 
@@ -168,7 +169,7 @@ export default function CampaignFilters({ campaigns }: Props) {
               id="platform-filter"
               value={platformFilter}
               onChange={(event) => setPlatformFilter(event.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-3 py-3 text-sm text-white outline-none focus:border-violet-500"
             >
               <option value="all">Semua Platform</option>
 
@@ -192,7 +193,7 @@ export default function CampaignFilters({ campaigns }: Props) {
               id="ai-filter"
               value={aiFilter}
               onChange={(event) => setAiFilter(event.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-3 py-3 text-sm text-white outline-none focus:border-violet-500"
             >
               <option value="all">Semua Campaign</option>
               <option value="ai">AI-Generated</option>
@@ -213,7 +214,7 @@ export default function CampaignFilters({ campaigns }: Props) {
                 id="sort-filter"
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-blue-500"
+                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#0b0a11] px-3 py-3 text-sm text-white outline-none focus:border-violet-500"
               >
                 <option value="newest">Terbaru diperbarui</option>
                 <option value="oldest">Terlama diperbarui</option>
@@ -224,7 +225,7 @@ export default function CampaignFilters({ campaigns }: Props) {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="rounded-lg border border-slate-700 px-4 py-3 text-sm font-medium transition hover:bg-slate-800"
+                className="rounded-lg border border-white/10 px-4 py-3 text-sm font-medium transition hover:bg-slate-800"
               >
                 Reset Filter
               </button>
@@ -242,7 +243,7 @@ export default function CampaignFilters({ campaigns }: Props) {
       </div>
 
       {filteredCampaigns.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/50 px-6 py-16 text-center">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-[#111019]/50 px-6 py-16 text-center">
           <h3 className="text-xl font-semibold">
             Campaign tidak ditemukan
           </h3>
@@ -254,84 +255,41 @@ export default function CampaignFilters({ campaigns }: Props) {
           <button
             type="button"
             onClick={resetFilters}
-            className="mt-6 rounded-lg bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500"
+            className="mt-6 rounded-lg bg-[#5232ff] px-5 py-3 font-medium transition hover:bg-[#7258ff]"
           >
             Reset Filter
           </button>
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCampaigns.map((campaign) => (
+          {filteredCampaigns.map((campaign, index) => (
             <article
               key={campaign.id}
-              className="flex flex-col rounded-2xl border border-slate-800 bg-slate-900 p-5"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111019] transition duration-200 hover:-translate-y-0.5 hover:border-violet-300/25 hover:shadow-[0_18px_45px_rgba(71,45,255,.16)]"
             >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="break-words text-lg font-semibold">
-                  {campaign.title}
-                </h3>
-
-                <span className="shrink-0 rounded-full bg-amber-500/10 px-3 py-1 text-xs text-amber-400">
-                  {campaign.status}
-                </span>
-              </div>
-
-              <p className="mt-3 line-clamp-3 min-h-12 text-sm text-slate-400">
-                {campaign.description || "Belum ada deskripsi."}
-              </p>
-
-              <div className="mt-5 space-y-2 text-sm">
-                {campaign.brandName && (
-                  <p className="text-slate-300">
-                    <span className="text-slate-500">Brand:</span>{" "}
-                    {campaign.brandName}
-                  </p>
-                )}
-
-                {campaign.platform && (
-                  <p className="text-slate-300">
-                    <span className="text-slate-500">Platform:</span>{" "}
-                    {campaign.platform}
-                  </p>
-                )}
-
-                {campaign.targetAudience && (
-                  <p className="text-slate-300">
-                    <span className="text-slate-500">Target:</span>{" "}
-                    {campaign.targetAudience}
-                  </p>
-                )}
-              </div>
-
-              {campaign.aiResult && (
-                <span className="mt-4 w-fit rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                  AI-Generated
-                </span>
-              )}
-
-              <p className="mt-5 text-xs text-slate-500">
-                Diperbarui{" "}
-                {new Intl.DateTimeFormat("id-ID", {
-                  dateStyle: "medium",
-                }).format(campaign.updatedAt)}
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-800 pt-4">
-                <Link
-                  href={`/dashboard/campaigns/${campaign.id}`}
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium transition hover:bg-slate-800"
-                >
-                  View Details
-                </Link>
-
+              <Link
+                href={`/dashboard/campaigns/${campaign.id}`}
+                aria-label={`Buka campaign ${campaign.title}`}
+                style={{ backgroundImage: `linear-gradient(180deg,rgba(12,10,22,.05),rgba(12,10,22,.15) 35%,rgba(17,16,25,.96)),linear-gradient(135deg,rgba(124,58,237,.2),transparent 65%),url("${campaignPhotos[index % campaignPhotos.length].url}")` }}
+                className="group/cover relative flex aspect-[4/5] min-h-[310px] flex-col justify-end border-b border-white/[0.06] bg-cover bg-center sm:min-h-[360px]"
+              >
+                <span className="absolute right-4 top-4 grid size-9 place-items-center rounded-full border border-white/25 bg-black/30 text-lg text-white/85 opacity-0 shadow-lg backdrop-blur-md transition group-hover/cover:opacity-100 group-focus-visible/cover:opacity-100" aria-hidden="true">↗</span>
+                <div className="p-5 sm:p-6">
+                  <h3 className="line-clamp-2 text-xl font-semibold leading-tight text-white drop-shadow-lg sm:text-2xl">{campaign.title}</h3>
+                </div>
+              </Link>
+              <div className="flex items-center justify-between gap-2 px-3 py-3">
+                <a href={campaignPhotos[index % campaignPhotos.length].source} target="_blank" rel="noreferrer" className="truncate text-[10px] text-slate-500 underline decoration-white/20 underline-offset-2 hover:text-slate-300">
+                  Foto: {campaignPhotos[index % campaignPhotos.length].credit} · Unsplash
+                </a>
                 <Link
                   href={`/dashboard/campaigns/${campaign.id}/edit`}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium transition hover:bg-blue-500"
+                  aria-label={`Edit ${campaign.title}`}
+                  className="shrink-0 rounded-lg border border-white/10 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
                 >
-                  Edit Campaign
+                  Edit
                 </Link>
-
-                <DeleteCampaignButton campaignId={campaign.id} />
+                <DeleteCampaignButton campaignId={campaign.id} compact />
               </div>
             </article>
           ))}
@@ -341,8 +299,8 @@ export default function CampaignFilters({ campaigns }: Props) {
   );
 }
 
-function DeleteCampaignButton({ campaignId }: { campaignId: string }) {
-  return <DeleteButtonWrapper campaignId={campaignId} />;
+function DeleteCampaignButton({ campaignId, compact = false }: { campaignId: string; compact?: boolean }) {
+  return <DeleteButtonWrapper campaignId={campaignId} compact={compact} />;
 }
 
 import DeleteButtonWrapper from "./DeleteCampaignButton";

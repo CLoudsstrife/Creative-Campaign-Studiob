@@ -35,17 +35,17 @@ export default async function EditCampaignPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+    <main className="app-background min-h-screen px-6 py-10 text-white">
       <div className="mx-auto max-w-3xl">
         <Link
           href="/dashboard/campaigns"
-          className="text-sm text-blue-400 hover:text-blue-300"
+          className="text-sm text-violet-400 hover:text-violet-300"
         >
           ← Kembali ke Campaign Saya
         </Link>
 
         <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-blue-400">
+          <p className="text-sm font-medium tracking-widest text-violet-400">
             CREATIVEFLOW AI
           </p>
           <h1 className="mt-2 text-3xl font-bold">Edit Campaign</h1>
@@ -54,7 +54,7 @@ export default async function EditCampaignPage({ params }: Props) {
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
           <EditCampaignForm
             campaign={{
               id: campaign.id,

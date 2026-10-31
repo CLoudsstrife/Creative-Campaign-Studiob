@@ -1,13 +1,38 @@
-
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { saveAICampaign } from "../actions";
+import CopyTextButton from "../CopyTextButton";
 
 type ContentIdea = {
   title: string;
   format: string;
   description: string;
+  hook: string;
+  concept: string;
+  keyPoints: string[];
+  visualDirection: string;
+  caption: string;
+  callToAction: string;
+  workflowStatus?: "idea" | "draft" | "review" | "ready" | "published";
+  scheduledAt?: string;
+};
+
+type GroundedSource = {
+  title: string;
+  url: string;
+};
+
+type BrandProfile = {
+  brandName: string;
+  product: string;
+  targetAudience: string;
+  platform: string;
+  tone: string;
+  brandContext: string;
+  contentPillars: string;
+  editorialRules: string;
+  useGoogleSearch: boolean;
 };
 
 type CampaignResult = {
@@ -17,6 +42,10 @@ type CampaignResult = {
   keyMessage: string;
   contentIdeas: ContentIdea[];
   callToAction: string;
+  claimsToVerify: string[];
+  sources: GroundedSource[];
+  selectedIdeaIndex?: number;
+  input?: Partial<BrandProfile>;
 };
 
 type ApiResponse = {
@@ -25,14 +54,79 @@ type ApiResponse = {
 };
 
 const inputClass =
-  "mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500";
+  "mt-2 w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 text-white outline-none transition focus:border-violet-500";
 
 const labelClass = "text-sm font-medium text-slate-200";
+// Kept as-is so profiles users already saved in their browser keep loading.
+const BISIK_PROFILE_KEY = "creativeflow-bisik-profile-v1";
+
+const DEFAULT_BISIK_PROFILE: BrandProfile = {
+  brandName: "BISIK by BEM Petra",
+  product:
+    "An educational account and discussion space covering social-political issues, national affairs, and current events for university students and young people.",
+  targetAudience:
+    "Petra students, university students in Surabaya, and young people who want to understand social-political issues in clear language.",
+  platform: "Instagram",
+  tone: "Friendly",
+  brandContext:
+    "BISIK is an education and discussion channel on social-political issues for university students and young people. Its goal is to help the audience understand issues and encourage reasoned discussion.",
+  contentPillars:
+    "Social-political issue literacy; policy impact on students; local issues in Surabaya and East Java; fact-checking and media literacy; youth dialogue and participation.",
+  editorialRules:
+    "Separate facts, context, and opinion. Avoid sensational headlines and personal attacks. Show relevant context and viewpoints. Never invent numbers, quotes, policies, or events. Flag anything that needs verification before publishing.",
+  useGoogleSearch: true,
+};
+
+function parseBrandProfile(value: string): BrandProfile | null {
+  try {
+    const parsed: unknown = JSON.parse(value);
+
+    if (typeof parsed !== "object" || parsed === null) return null;
+
+    const profile = parsed as Record<string, unknown>;
+    const textFields: Array<keyof Omit<BrandProfile, "useGoogleSearch">> = [
+      "brandName",
+      "product",
+      "targetAudience",
+      "platform",
+      "tone",
+      "brandContext",
+      "contentPillars",
+      "editorialRules",
+    ];
+
+    if (
+      !textFields.every((field) => typeof profile[field] === "string") ||
+      typeof profile.useGoogleSearch !== "boolean"
+    ) {
+      return null;
+    }
+
+    return {
+      brandName: profile.brandName as string,
+      product: profile.product as string,
+      targetAudience: profile.targetAudience as string,
+      platform: profile.platform as string,
+      tone: profile.tone as string,
+      brandContext: profile.brandContext as string,
+      contentPillars: profile.contentPillars as string,
+      editorialRules: profile.editorialRules as string,
+      useGoogleSearch: profile.useGoogleSearch as boolean,
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function CampaignGeneratorForm() {
   const [brandName, setBrandName] = useState("");
   const [product, setProduct] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
+  const [brandContext, setBrandContext] = useState("");
+  const [contentPillars, setContentPillars] = useState("");
+  const [editorialRules, setEditorialRules] = useState("");
+  const [useGoogleSearch, setUseGoogleSearch] = useState(true);
+  const [profileMessage, setProfileMessage] = useState("");
 
   const [campaignObjective, setCampaignObjective] =
     useState("Brand Awareness");
@@ -48,6 +142,8 @@ export default function CampaignGeneratorForm() {
   const [customTone, setCustomTone] = useState("");
 
   const [result, setResult] = useState<CampaignResult | null>(null);
+  const [selectedIdeaIndex, setSelectedIdeaIndex] = useState<number | null>(null);
+  const [expandedIdeaIndex, setExpandedIdeaIndex] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -58,6 +154,73 @@ export default function CampaignGeneratorForm() {
   const [saved, setSaved] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const applyBrandProfile = useCallback((profile: BrandProfile) => {
+    setBrandName(profile.brandName);
+    setProduct(profile.product);
+    setTargetAudience(profile.targetAudience);
+    setPlatform(profile.platform);
+    setTone(profile.tone);
+    setBrandContext(profile.brandContext);
+    setContentPillars(profile.contentPillars);
+    setEditorialRules(profile.editorialRules);
+    setUseGoogleSearch(profile.useGoogleSearch);
+  }, []);
+
+  useEffect(() => {
+    const savedProfile = window.localStorage.getItem(BISIK_PROFILE_KEY);
+
+    if (!savedProfile) return;
+
+    const profile = parseBrandProfile(savedProfile);
+
+    if (profile) {
+      applyBrandProfile(profile);
+      setProfileMessage("Saved BISIK profile loaded from this browser.");
+    } else {
+      window.localStorage.removeItem(BISIK_PROFILE_KEY);
+    }
+  }, [applyBrandProfile]);
+
+  function loadBrandProfile() {
+    const savedProfile = window.localStorage.getItem(BISIK_PROFILE_KEY);
+
+    if (savedProfile) {
+      const profile = parseBrandProfile(savedProfile);
+
+      if (profile) {
+        applyBrandProfile(profile);
+        setProfileMessage("Saved BISIK profile loaded.");
+        return;
+      } else {
+        window.localStorage.removeItem(BISIK_PROFILE_KEY);
+      }
+    }
+
+    applyBrandProfile(DEFAULT_BISIK_PROFILE);
+    setProfileMessage("Default BISIK profile loaded. Adjust it and save if needed.");
+  }
+
+  function saveBrandProfile() {
+    const profile: BrandProfile = {
+      brandName: brandName.trim(),
+      product: product.trim(),
+      targetAudience: targetAudience.trim(),
+      platform,
+      tone,
+      brandContext: brandContext.trim(),
+      contentPillars: contentPillars.trim(),
+      editorialRules: editorialRules.trim(),
+      useGoogleSearch,
+    };
+
+    try {
+      window.localStorage.setItem(BISIK_PROFILE_KEY, JSON.stringify(profile));
+      setProfileMessage("BISIK profile saved in this browser.");
+    } catch {
+      setProfileMessage("The profile couldn't be saved in this browser.");
+    }
+  }
 
   useEffect(() => {
     if (!loading) return;
@@ -91,7 +254,7 @@ export default function CampaignGeneratorForm() {
     const effectiveTone = tone === "Other" ? customTone.trim() : tone;
 
     if (!effectiveObjective || !effectivePlatform || !effectiveTone) {
-      setError("Mohon isi semua pilihan khusus yang masih kosong.");
+      setError("Please fill in all custom options that are still empty.");
       return;
     }
 
@@ -102,6 +265,8 @@ export default function CampaignGeneratorForm() {
     setProgress(0);
     setError("");
     setResult(null);
+    setSelectedIdeaIndex(null);
+    setExpandedIdeaIndex(null);
     setSaveMessage("");
     setSaveError("");
     setSaved(false);
@@ -123,6 +288,10 @@ export default function CampaignGeneratorForm() {
           audiencePainPoint: audiencePainPoint.trim(),
           platform: effectivePlatform,
           tone: effectiveTone,
+          brandContext: brandContext.trim(),
+          contentPillars: contentPillars.trim(),
+          editorialRules: editorialRules.trim(),
+          useGoogleSearch,
         }),
         signal: controller.signal,
       });
@@ -130,23 +299,24 @@ export default function CampaignGeneratorForm() {
       const data = (await response.json()) as ApiResponse;
 
       if (!response.ok) {
-        throw new Error(data.error || "Gagal membuat campaign.");
+        throw new Error(data.error || "Failed to generate the campaign.");
       }
 
       if (!data.result) {
-        throw new Error("Respons AI tidak memiliki hasil campaign.");
+        throw new Error("The AI response did not include a campaign result.");
       }
 
       setProgress(100);
       setResult(data.result);
+      setSelectedIdeaIndex(data.result.selectedIdeaIndex ?? null);
     } catch (err) {
       if (controller.signal.aborted) {
-        setError("Pembuatan campaign dibatalkan.");
+        setError("Campaign generation was cancelled.");
       } else {
         setError(
           err instanceof Error
             ? err.message
-            : "Terjadi kesalahan saat menghubungi AI."
+            : "Something went wrong while contacting the AI."
         );
       }
 
@@ -182,7 +352,22 @@ export default function CampaignGeneratorForm() {
         targetAudience: targetAudience.trim(),
         platform: effectivePlatform,
         tone: effectiveTone,
-        result,
+        result: {
+          ...result,
+          ...(selectedIdeaIndex !== null && { selectedIdeaIndex }),
+          input: {
+            ...result.input,
+            brandName: brandName.trim(),
+            product: product.trim(),
+            targetAudience: targetAudience.trim(),
+            platform: effectivePlatform,
+            tone: effectiveTone,
+            brandContext: brandContext.trim(),
+            contentPillars: contentPillars.trim(),
+            editorialRules: editorialRules.trim(),
+            useGoogleSearch,
+          },
+        },
       });
 
       if (response.error) {
@@ -191,9 +376,9 @@ export default function CampaignGeneratorForm() {
       }
 
       setSaved(true);
-      setSaveMessage(response.success ?? "Campaign berhasil disimpan!");
+      setSaveMessage(response.success ?? "Campaign saved successfully!");
     } catch {
-      setSaveError("Terjadi kesalahan saat menyimpan campaign.");
+      setSaveError("Something went wrong while saving the campaign.");
     } finally {
       setSaving(false);
     }
@@ -201,18 +386,22 @@ export default function CampaignGeneratorForm() {
 
   const progressStage =
     progress < 30
-      ? "Menyiapkan request..."
+      ? "Preparing the request..."
       : progress < 90
-        ? "Gemini sedang membuat campaign..."
-        : "Menunggu hasil dari AI...";
+        ? "Gemini is generating your campaign..."
+        : "Waiting for the AI's response...";
 
   return (
     <div>
       <form onSubmit={handleGenerate} className="space-y-5">
+        <div className="border-b border-white/[0.07] pb-4">
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">01 / BRAND PROFILE</p>
+          <p className="mt-1 text-xs text-slate-500">Introduce your brand and the editorial direction to keep.</p>
+        </div>
         {/* Brand name */}
         <div>
           <label htmlFor="brandName" className={labelClass}>
-            Nama Brand *
+            Brand Name *
           </label>
           <input
             id="brandName"
@@ -220,15 +409,95 @@ export default function CampaignGeneratorForm() {
             onChange={(e) => setBrandName(e.target.value)}
             required
             maxLength={150}
-            placeholder="Contoh: Kopi Nusantara"
+            placeholder="Example: Nusantara Coffee"
             className={inputClass}
           />
+          <p className="mt-1 text-xs text-slate-500">Use the name of the brand you&apos;re promoting. You can load a saved profile if it&apos;s relevant.</p>
         </div>
 
+        <details className="group rounded-xl border border-violet-300/15 bg-[#5232ff]/[0.035] p-4">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="block font-semibold text-violet-100">Saved brand profile <span className="ml-1 text-xs font-normal text-slate-500">optional</span></span>
+              <span className="mt-1 block text-xs text-slate-500">The BISIK preset is a personal feature; use it only if it fits your campaign&apos;s brand.</span>
+            </span>
+            <span className="rounded-full border border-violet-300/20 bg-violet-300/[0.08] px-2.5 py-1 text-[10px] font-medium text-violet-200">BISIK preset · optional</span>
+          </summary>
+          <div className="mt-4 space-y-4 border-t border-white/[0.07] pt-4">
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={loadBrandProfile}
+                className="rounded-lg border border-violet-400/30 px-3 py-2 text-xs font-medium text-violet-200 transition hover:bg-[#7258ff]/10"
+              >
+                Load BISIK profile
+              </button>
+              <button
+                type="button"
+                onClick={saveBrandProfile}
+                className="rounded-lg bg-[#5232ff] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#7258ff]"
+              >
+                Save profile
+              </button>
+            </div>
+
+          <div>
+            <label htmlFor="brandContext" className={labelClass}>
+              Brand purpose and context
+            </label>
+            <textarea
+              id="brandContext"
+              value={brandContext}
+              onChange={(event) => setBrandContext(event.target.value)}
+              maxLength={1200}
+              rows={3}
+              placeholder="Describe the account's purpose, its role, and what you want to bring to your audience."
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="contentPillars" className={labelClass}>
+              Content pillars
+            </label>
+            <textarea
+              id="contentPillars"
+              value={contentPillars}
+              onChange={(event) => setContentPillars(event.target.value)}
+              maxLength={1000}
+              rows={2}
+              placeholder="Example: product education, customer stories, usage tips, or brand community."
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="editorialRules" className={labelClass}>
+              Editorial guidelines
+            </label>
+            <textarea
+              id="editorialRules"
+              value={editorialRules}
+              onChange={(event) => setEditorialRules(event.target.value)}
+              maxLength={1200}
+              rows={3}
+              placeholder="Rules for accuracy, tone, balance, and content boundaries."
+              className={inputClass}
+            />
+          </div>
+
+          </div>
+        </details>
+        {profileMessage && <p role="status" className="text-xs text-emerald-300">{profileMessage}</p>}
+
+        <div className="border-b border-white/[0.07] pb-4 pt-2">
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">02 / CAMPAIGN BRIEF</p>
+          <p className="mt-1 text-xs text-slate-500">Describe the offer, the audience, and the change you want to achieve.</p>
+        </div>
         {/* Product or service */}
         <div>
           <label htmlFor="product" className={labelClass}>
-            Produk atau Layanan *
+            Product or Service *
           </label>
           <textarea
             id="product"
@@ -237,7 +506,7 @@ export default function CampaignGeneratorForm() {
             required
             maxLength={1000}
             rows={3}
-            placeholder="Jelaskan produk, keunggulan, dan hal yang ingin dipromosikan."
+            placeholder="Describe the product, its strengths, and what you want to promote."
             className={inputClass}
           />
         </div>
@@ -245,7 +514,7 @@ export default function CampaignGeneratorForm() {
         {/* Target audience */}
         <div>
           <label htmlFor="targetAudience" className={labelClass}>
-            Target Audiens *
+            Target Audience *
           </label>
           <textarea
             id="targetAudience"
@@ -254,7 +523,7 @@ export default function CampaignGeneratorForm() {
             required
             maxLength={500}
             rows={2}
-            placeholder="Contoh: Mahasiswa usia 18–24 tahun."
+            placeholder="Example: University students aged 18–24."
             className={inputClass}
           />
         </div>
@@ -286,11 +555,11 @@ export default function CampaignGeneratorForm() {
               type="text"
               value={customObjective}
               onChange={(e) => setCustomObjective(e.target.value)}
-              placeholder="Masukkan tujuan campaign"
+              placeholder="Enter your campaign objective"
               maxLength={200}
               required
               className={inputClass}
-              aria-label="Tujuan campaign lainnya"
+              aria-label="Other campaign objective"
             />
           )}
         </div>
@@ -298,7 +567,7 @@ export default function CampaignGeneratorForm() {
         {/* Unique selling proposition */}
         <div>
           <label htmlFor="usp" className={labelClass}>
-            Unique Selling Proposition (Opsional)
+            Unique Selling Proposition (Optional)
           </label>
           <textarea
             id="usp"
@@ -306,19 +575,19 @@ export default function CampaignGeneratorForm() {
             onChange={(e) => setUsp(e.target.value)}
             rows={3}
             maxLength={1000}
-            placeholder="Apa keunggulan unik produk dibandingkan alternatif lain?"
+            placeholder="What makes your product uniquely better than the alternatives?"
             className={inputClass}
           />
           <p className="mt-1 text-xs text-slate-500">
-            Contoh: harga lebih terjangkau, bahan ramah lingkungan, atau
-            layanan lebih cepat.
+            Examples: more affordable pricing, eco-friendly materials, or
+            faster service.
           </p>
         </div>
 
         {/* Audience pain point */}
         <div>
           <label htmlFor="audiencePainPoint" className={labelClass}>
-            Audience Pain Point (Opsional)
+            Audience Pain Point (Optional)
           </label>
           <textarea
             id="audiencePainPoint"
@@ -326,12 +595,16 @@ export default function CampaignGeneratorForm() {
             onChange={(e) => setAudiencePainPoint(e.target.value)}
             rows={3}
             maxLength={1000}
-            placeholder="Apa masalah, kebutuhan, atau keinginan target audiens?"
+            placeholder="What problems, needs, or wants does your target audience have?"
             className={inputClass}
           />
         </div>
 
         {/* Platform and tone */}
+        <div className="border-b border-white/[0.07] pb-4 pt-2">
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">03 / CHANNEL & VOICE</p>
+          <p className="mt-1 text-xs text-slate-500">Decide where the content will run and how it should sound.</p>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <label htmlFor="platform" className={labelClass}>
@@ -359,11 +632,11 @@ export default function CampaignGeneratorForm() {
                 type="text"
                 value={customPlatform}
                 onChange={(e) => setCustomPlatform(e.target.value)}
-                placeholder="Masukkan platform pilihanmu"
+                placeholder="Enter your platform"
                 maxLength={100}
                 required
                 className={inputClass}
-                aria-label="Platform lainnya"
+                aria-label="Other platform"
               />
             )}
           </div>
@@ -395,29 +668,37 @@ export default function CampaignGeneratorForm() {
                 type="text"
                 value={customTone}
                 onChange={(e) => setCustomTone(e.target.value)}
-                placeholder="Masukkan tone of voice pilihanmu"
+                placeholder="Enter your tone of voice"
                 maxLength={100}
                 required
                 className={inputClass}
-                aria-label="Tone of voice lainnya"
+                aria-label="Other tone of voice"
               />
             )}
           </div>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-[#111019] p-4 text-sm text-slate-300">
+          <input type="checkbox" checked={useGoogleSearch} onChange={(event) => setUseGoogleSearch(event.target.checked)} className="mt-1 accent-violet-500" />
+          <span>
+            Search the web for sources to help with fact-checking
+            <span className="mt-1 block text-xs leading-5 text-slate-500">Useful for campaigns that involve data, trends, or current issues. Using search may add API costs.</span>
+          </span>
+        </label>
+
         {/* Generation progress */}
         {loading && (
           <div
-            className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-5"
+            className="rounded-xl border border-violet-500/30 bg-[#5232ff]/5 p-5"
             role="status"
             aria-live="polite"
             aria-atomic="true"
           >
             <div className="flex items-center justify-between gap-3">
-              <p className="font-medium text-blue-300">
+              <p className="font-medium text-violet-300">
                 Generating your campaign
               </p>
-              <span className="text-lg font-bold tabular-nums text-blue-300">
+              <span className="text-lg font-bold tabular-nums text-violet-300">
                 {Math.floor(progress)}%
               </span>
             </div>
@@ -425,21 +706,21 @@ export default function CampaignGeneratorForm() {
             <div
               className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-800"
               role="progressbar"
-              aria-label="Estimasi progres pembuatan campaign"
+              aria-label="Estimated campaign generation progress"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.floor(progress)}
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-violet-500 transition-[width] duration-300 ease-out"
+                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-violet-500 transition-[width] duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
             <p className="mt-3 text-sm text-slate-300">{progressStage}</p>
             <p className="mt-1 text-xs text-slate-500">
-              Persentase merupakan estimasi. Kamu bisa membatalkan proses jika
-              terlalu lama.
+              The percentage is an estimate. You can cancel if it takes too
+              long.
             </p>
 
             <button
@@ -447,7 +728,7 @@ export default function CampaignGeneratorForm() {
               onClick={handleCancel}
               className="mt-4 rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/10"
             >
-              Batal
+              Cancel
             </button>
           </div>
         )}
@@ -465,14 +746,14 @@ export default function CampaignGeneratorForm() {
         <button
           type="submit"
           disabled={loading || saving}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-medium transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5232ff] px-5 py-3 font-medium transition hover:bg-[#7258ff] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {loading ? (
             <>
               <span className="animate-spin" aria-hidden="true">
                 ⟳
               </span>
-              Sedang membuat campaign...
+              Generating campaign...
             </>
           ) : (
             "✨ Generate Campaign with AI"
@@ -484,10 +765,10 @@ export default function CampaignGeneratorForm() {
       {result && (
         <section
           aria-live="polite"
-          className="mt-10 space-y-6 border-t border-slate-800 pt-8"
+          className="mt-10 space-y-6 border-t border-white/[0.08] pt-8"
         >
           <div>
-            <p className="text-sm font-medium tracking-widest text-blue-400">
+            <p className="text-sm font-medium tracking-widest text-violet-400">
               AI GENERATED CAMPAIGN
             </p>
             <h2 className="mt-2 text-2xl font-bold">
@@ -495,25 +776,79 @@ export default function CampaignGeneratorForm() {
             </h2>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-5">
-            <h3 className="font-semibold text-blue-300">Big Idea</h3>
+          <div className="rounded-xl border border-white/[0.08] bg-[#0b0a11] p-5">
+            <h3 className="font-semibold text-violet-300">Big Idea</h3>
             <p className="mt-2 whitespace-pre-wrap text-slate-300">
               {result.bigIdea}
             </p>
 
-            <h3 className="mt-5 font-semibold text-blue-300">
+            <h3 className="mt-5 font-semibold text-violet-300">
               Campaign Objective
             </h3>
             <p className="mt-2 whitespace-pre-wrap text-slate-300">
               {result.objective}
             </p>
 
-            <h3 className="mt-5 font-semibold text-blue-300">
+            <h3 className="mt-5 font-semibold text-violet-300">
               Key Message
             </h3>
             <p className="mt-2 whitespace-pre-wrap text-slate-300">
               {result.keyMessage}
             </p>
+          </div>
+
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
+            <h3 className="font-semibold text-amber-200">
+              Sources and fact-checking
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              The sources below come from Google Search grounding. Make sure
+              each source actually supports the claim before you publish the
+              content.
+            </p>
+
+            {result.claimsToVerify.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold text-amber-100">
+                  Claims to verify
+                </h4>
+                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  {result.claimsToVerify.map((claim, index) => (
+                    <li key={index}>{claim}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-400">
+                The AI didn&apos;t flag any specific claims, but still fact-check before publishing.
+              </p>
+            )}
+
+            {result.sources.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold text-amber-100">
+                  Web sources
+                </h4>
+                <ul className="mt-2 space-y-2 text-sm">
+                  {result.sources.map((source) => (
+                    <li key={source.url}>
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-violet-300 underline decoration-violet-300/40 underline-offset-4 hover:text-violet-200"
+                      >
+                        {source.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-400">
+                No web sources were returned for this campaign.
+              </p>
+            )}
           </div>
 
           <div>
@@ -523,24 +858,87 @@ export default function CampaignGeneratorForm() {
               {result.contentIdeas.map((idea, index) => (
                 <article
                   key={`${idea.title}-${index}`}
-                  className="rounded-xl border border-slate-800 bg-slate-950 p-5"
+                  className={`rounded-xl border bg-[#0b0a11] p-5 transition ${
+                    selectedIdeaIndex === index
+                      ? "border-emerald-500/60 ring-1 ring-emerald-500/20"
+                      : "border-white/[0.08]"
+                  }`}
                 >
-                  <p className="text-sm text-blue-400">
-                    CONTENT IDEA {index + 1} · {idea.format}
-                  </p>
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                    <div>
+                      <p className="text-sm text-violet-400">
+                        CONTENT IDEA {index + 1} · {idea.format}
+                      </p>
+                      <h4 className="mt-2 font-semibold">{idea.title}</h4>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-400">
+                        {idea.description}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-expanded={expandedIdeaIndex === index}
+                      onClick={() => {
+                        setSelectedIdeaIndex(index);
+                        setExpandedIdeaIndex((current) =>
+                          current === index ? null : index
+                        );
+                      }}
+                      className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                        selectedIdeaIndex === index
+                          ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                          : "border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10"
+                      }`}
+                    >
+                      {selectedIdeaIndex === index
+                        ? expandedIdeaIndex === index
+                          ? "✓ Selected · Close details"
+                          : "✓ Selected · View details"
+                        : "Select & view details"}
+                    </button>
+                  </div>
 
-                  <h4 className="mt-2 font-semibold">{idea.title}</h4>
-
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-400">
-                    {idea.description}
-                  </p>
+                  {expandedIdeaIndex === index && (
+                    <div className="mt-5 space-y-5 border-t border-white/[0.08] pt-5">
+                      <div>
+                        <h5 className="text-sm font-semibold text-violet-300">Opening hook</h5>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.hook}</p>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-semibold text-violet-300">Angle and concept</h5>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.concept}</p>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-semibold text-violet-300">Flow / key points</h5>
+                        <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                          {idea.keyPoints.map((point, pointIndex) => (
+                            <li key={`${index}-${pointIndex}`}>{point}</li>
+                          ))}
+                        </ol>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-semibold text-violet-300">Visual direction</h5>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.visualDirection}</p>
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h5 className="text-sm font-semibold text-violet-300">Caption draft</h5>
+                          <CopyTextButton text={idea.caption} />
+                        </div>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.caption}</p>
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-semibold text-violet-300">Content CTA</h5>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.callToAction}</p>
+                      </div>
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-5">
-            <h3 className="font-semibold text-blue-300">Call to Action</h3>
+          <div className="rounded-xl border border-violet-500/30 bg-[#5232ff]/5 p-5">
+            <h3 className="font-semibold text-violet-300">Call to Action</h3>
             <p className="mt-2 whitespace-pre-wrap text-slate-300">
               {result.callToAction}
             </p>
@@ -551,19 +949,19 @@ export default function CampaignGeneratorForm() {
               type="button"
               onClick={handleSaveCampaign}
               disabled={saving || saved}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-[#5232ff] px-4 py-2 text-sm font-medium transition hover:bg-[#7258ff] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
-                ? "Menyimpan..."
+                ? "Saving..."
                 : saved
-                  ? "✓ Campaign Tersimpan"
+                  ? "✓ Campaign Saved"
                   : "Save Campaign"}
             </button>
 
             <button
               type="button"
               onClick={() => window.print()}
-              className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium transition hover:bg-slate-800"
+              className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium transition hover:bg-slate-800"
             >
               Print / Save as PDF
             </button>

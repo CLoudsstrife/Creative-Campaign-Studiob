@@ -11,7 +11,7 @@ if (!apiKey) {
 const gemini = new GoogleGenAI({
   apiKey,
   httpOptions: {
-    timeout: 22_000,
+    timeout: 60_000,
     retryOptions: {
       attempts: 1,
     },
@@ -20,6 +20,11 @@ const gemini = new GoogleGenAI({
 
 const MAX_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 1_500;
+
+export type GroundedSource = {
+  title: string;
+  url: string;
+};
 
 function wait(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -71,8 +76,9 @@ function isTemporaryError(error: unknown): boolean {
 
 export async function generateAIText(
   prompt: string,
-  signal?: AbortSignal
-): Promise<string> {
+  signal?: AbortSignal,
+  useGoogleSearch = false
+): Promise<{ text: string; sources: GroundedSource[] }> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     if (signal?.aborted) {
       throw (
@@ -87,8 +93,9 @@ export async function generateAIText(
         contents: prompt,
         config: {
           abortSignal: signal,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 16_384,
           responseMimeType: "application/json",
+          ...(useGoogleSearch && { tools: [{ googleSearch: {} }] }),
         },
       });
 
@@ -105,7 +112,29 @@ export async function generateAIText(
         throw new Error("Gemini tidak menghasilkan teks.");
       }
 
-      return text;
+      const sourceMap = new Map<string, GroundedSource>();
+
+      for (const chunk of response.candidates?.[0]?.groundingMetadata
+        ?.groundingChunks ?? []) {
+        const url = chunk.web?.uri;
+
+        if (!url) continue;
+
+        try {
+          const parsedUrl = new URL(url);
+
+          if (parsedUrl.protocol !== "https:") continue;
+
+          sourceMap.set(url, {
+            title: chunk.web?.title?.trim() || parsedUrl.hostname,
+            url,
+          });
+        } catch {
+          // Abaikan sumber yang URL-nya tidak valid.
+        }
+      }
+
+      return { text, sources: [...sourceMap.values()].slice(0, 8) };
     } catch (error) {
       if (signal?.aborted) {
         throw (

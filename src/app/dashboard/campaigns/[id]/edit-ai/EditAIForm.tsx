@@ -5,11 +5,32 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { updateAICampaign } from "../../actions";
+import CopyTextButton from "../../CopyTextButton";
+
+type ContentWorkflowStatus =
+  | "idea"
+  | "draft"
+  | "review"
+  | "ready"
+  | "published";
 
 type ContentIdea = {
   title: string;
   format: string;
   description: string;
+  hook?: string;
+  concept?: string;
+  keyPoints?: string[];
+  visualDirection?: string;
+  caption?: string;
+  callToAction?: string;
+  workflowStatus?: ContentWorkflowStatus;
+  scheduledAt?: string;
+};
+
+type GroundedSource = {
+  title: string;
+  url: string;
 };
 
 type CampaignAIResult = {
@@ -19,12 +40,19 @@ type CampaignAIResult = {
   keyMessage: string;
   contentIdeas: ContentIdea[];
   callToAction: string;
+  selectedIdeaIndex?: number;
+  claimsToVerify?: string[];
+  sources?: GroundedSource[];
   input?: {
     brandName?: string;
     product?: string;
     targetAudience?: string;
     platform?: string;
     tone?: string;
+    brandContext?: string;
+    contentPillars?: string;
+    editorialRules?: string;
+    useGoogleSearch?: boolean;
   };
 };
 
@@ -67,10 +95,10 @@ export default function EditAIForm({
     setSuccess("");
   }
 
-  function updateContentIdea(
+  function updateContentIdea<K extends keyof ContentIdea>(
     index: number,
-    field: keyof ContentIdea,
-    value: string
+    field: K,
+    value: ContentIdea[K]
   ) {
     setResult((current) => ({
       ...current,
@@ -80,6 +108,19 @@ export default function EditAIForm({
     }));
     setError("");
     setSuccess("");
+  }
+
+  function toDateTimeLocal(value?: string) {
+    if (!value) return "";
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const localDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60_000
+    );
+
+    return localDate.toISOString().slice(0, 16);
   }
 
   function addContentIdea() {
@@ -96,6 +137,7 @@ export default function EditAIForm({
           title: "",
           format: "",
           description: "",
+          workflowStatus: "idea",
         },
       ],
     }));
@@ -109,6 +151,14 @@ export default function EditAIForm({
       contentIdeas: current.contentIdeas.filter(
         (_, i) => i !== index
       ),
+      ...(current.selectedIdeaIndex !== undefined && {
+        selectedIdeaIndex:
+          current.selectedIdeaIndex === index
+            ? undefined
+            : current.selectedIdeaIndex > index
+              ? current.selectedIdeaIndex - 1
+              : current.selectedIdeaIndex,
+      }),
     }));
     setError("");
     setSuccess("");
@@ -155,6 +205,7 @@ export default function EditAIForm({
           keyMessage: result.keyMessage.trim(),
           callToAction: result.callToAction.trim(),
           contentIdeas: result.contentIdeas.map((idea) => ({
+            ...idea,
             title: idea.title.trim(),
             format: idea.format.trim(),
             description: idea.description.trim(),
@@ -178,13 +229,13 @@ export default function EditAIForm({
   }
 
   const inputClass =
-    "mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-blue-500";
+    "mt-2 w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 text-white outline-none transition placeholder:text-slate-600 focus:border-violet-500";
 
   const labelClass = "block text-sm font-medium text-slate-300";
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+      <section className="rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
         <h2 className="text-xl font-semibold">Campaign Overview</h2>
 
         <div className="mt-6">
@@ -258,7 +309,7 @@ export default function EditAIForm({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+      <section className="rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold">Content Ideas</h2>
@@ -271,7 +322,7 @@ export default function EditAIForm({
             type="button"
             onClick={addContentIdea}
             disabled={result.contentIdeas.length >= 20 || saving}
-            className="rounded-lg border border-blue-500/50 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-violet-500/50 px-4 py-2 text-sm font-medium text-violet-300 transition hover:bg-[#7258ff]/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             + Add Content Idea
           </button>
@@ -281,7 +332,7 @@ export default function EditAIForm({
           {result.contentIdeas.map((idea, index) => (
             <article
               key={index}
-              className="rounded-xl border border-slate-700 bg-slate-950/60 p-5"
+              className="rounded-xl border border-white/10 bg-[#0b0a11]/60 p-5"
             >
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-semibold">
@@ -357,11 +408,167 @@ export default function EditAIForm({
                   required
                 />
               </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelClass} htmlFor={`idea-status-${index}`}>
+                    Status produksi
+                  </label>
+                  <select
+                    id={`idea-status-${index}`}
+                    className={inputClass}
+                    value={idea.workflowStatus ?? "idea"}
+                    onChange={(event) =>
+                      updateContentIdea(
+                        index,
+                        "workflowStatus",
+                        event.target.value as ContentWorkflowStatus
+                      )
+                    }
+                  >
+                    <option value="idea">Ide</option>
+                    <option value="draft">Draft</option>
+                    <option value="review">Review</option>
+                    <option value="ready">Siap diposting</option>
+                    <option value="published">Sudah diposting</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass} htmlFor={`idea-schedule-${index}`}>
+                    Jadwal publikasi
+                  </label>
+                  <input
+                    id={`idea-schedule-${index}`}
+                    type="datetime-local"
+                    className={inputClass}
+                    value={toDateTimeLocal(idea.scheduledAt)}
+                    onChange={(event) =>
+                      updateContentIdea(
+                        index,
+                        "scheduledAt",
+                        event.target.value
+                          ? new Date(event.target.value).toISOString()
+                          : undefined
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-lg border border-white/[0.08] p-4">
+                <h4 className="font-semibold text-violet-300">Brief produksi</h4>
+
+                <div className="mt-4">
+                  <label className={labelClass} htmlFor={`idea-hook-${index}`}>
+                    Hook pembuka
+                  </label>
+                  <textarea
+                    id={`idea-hook-${index}`}
+                    className={inputClass}
+                    rows={2}
+                    maxLength={300}
+                    value={idea.hook ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(index, "hook", event.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className={labelClass} htmlFor={`idea-concept-${index}`}>
+                    Angle dan konsep
+                  </label>
+                  <textarea
+                    id={`idea-concept-${index}`}
+                    className={inputClass}
+                    rows={3}
+                    maxLength={1400}
+                    value={idea.concept ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(index, "concept", event.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className={labelClass} htmlFor={`idea-points-${index}`}>
+                    Alur / poin utama (satu poin per baris)
+                  </label>
+                  <textarea
+                    id={`idea-points-${index}`}
+                    className={inputClass}
+                    rows={4}
+                    value={idea.keyPoints?.join("\n") ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(
+                        index,
+                        "keyPoints",
+                        event.target.value
+                          .split(/\r?\n/)
+                          .map((point) => point.trim())
+                          .filter(Boolean)
+                          .slice(0, 6)
+                      )
+                    }
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className={labelClass} htmlFor={`idea-visual-${index}`}>
+                    Arahan visual
+                  </label>
+                  <textarea
+                    id={`idea-visual-${index}`}
+                    className={inputClass}
+                    rows={3}
+                    maxLength={1000}
+                    value={idea.visualDirection ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(index, "visualDirection", event.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className={labelClass} htmlFor={`idea-caption-${index}`}>
+                      Caption
+                    </label>
+                    <CopyTextButton text={idea.caption ?? ""} />
+                  </div>
+                  <textarea
+                    id={`idea-caption-${index}`}
+                    className={inputClass}
+                    rows={5}
+                    maxLength={1600}
+                    value={idea.caption ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(index, "caption", event.target.value)
+                    }
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className={labelClass} htmlFor={`idea-cta-${index}`}>
+                    CTA konten
+                  </label>
+                  <textarea
+                    id={`idea-cta-${index}`}
+                    className={inputClass}
+                    rows={2}
+                    maxLength={500}
+                    value={idea.callToAction ?? ""}
+                    onChange={(event) =>
+                      updateContentIdea(index, "callToAction", event.target.value)
+                    }
+                  />
+                </div>
+              </div>
             </article>
           ))}
 
           {result.contentIdeas.length === 0 && (
-            <p className="rounded-lg border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+            <p className="rounded-lg border border-dashed border-white/10 p-5 text-sm text-slate-400">
               Belum ada content idea. Klik Add Content Idea untuk
               menambahkan ide baru.
             </p>
@@ -392,14 +599,14 @@ export default function EditAIForm({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-[#5232ff] px-6 py-3 text-sm font-semibold transition hover:bg-[#7258ff] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving Changes..." : "Save Changes"}
         </button>
 
         <Link
           href={`/dashboard/campaigns/${campaignId}`}
-          className="rounded-lg border border-slate-700 px-6 py-3 text-sm font-medium transition hover:bg-slate-800"
+          className="rounded-lg border border-white/10 px-6 py-3 text-sm font-medium transition hover:bg-slate-800"
         >
           Cancel
         </Link>

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import DownloadCampaignPDF from "./DownloadCampaignPDF";
+import CopyTextButton from "../CopyTextButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -13,6 +14,19 @@ type ContentIdea = {
   title: string;
   format: string;
   description: string;
+  hook?: string;
+  concept?: string;
+  keyPoints?: string[];
+  visualDirection?: string;
+  caption?: string;
+  callToAction?: string;
+  workflowStatus?: "idea" | "draft" | "review" | "ready" | "published";
+  scheduledAt?: string;
+};
+
+type GroundedSource = {
+  title: string;
+  url: string;
 };
 
 type CampaignAIResult = {
@@ -22,12 +36,19 @@ type CampaignAIResult = {
   keyMessage: string;
   contentIdeas: ContentIdea[];
   callToAction: string;
+  selectedIdeaIndex?: number;
+  claimsToVerify?: string[];
+  sources?: GroundedSource[];
   input?: {
     brandName?: string;
     product?: string;
     targetAudience?: string;
     platform?: string;
     tone?: string;
+    brandContext?: string;
+    contentPillars?: string;
+    editorialRules?: string;
+    useGoogleSearch?: boolean;
   };
 };
 
@@ -109,17 +130,17 @@ export default async function CampaignDetailPage({ params }: Props) {
   }).format(campaign.updatedAt);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+    <main className="app-background min-h-screen px-6 py-10 text-white">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/dashboard/campaigns"
-          className="text-sm text-blue-400 hover:text-blue-300"
+          className="text-sm text-violet-400 hover:text-violet-300"
         >
           ← Kembali ke Campaign Saya
         </Link>
 
         <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-blue-400">
+          <p className="text-sm font-medium tracking-widest text-violet-400">
             CREATIVEFLOW AI
           </p>
 
@@ -138,7 +159,7 @@ export default async function CampaignDetailPage({ params }: Props) {
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">
               Informasi Campaign
@@ -162,7 +183,7 @@ export default async function CampaignDetailPage({ params }: Props) {
               {campaign.aiResult && (
                 <Link
                   href={`/dashboard/campaigns/${campaign.id}/edit-ai`}
-                  className="rounded-lg border border-blue-500/50 px-4 py-2 text-sm font-medium text-blue-300 transition hover:bg-blue-500/10"
+                  className="rounded-lg border border-violet-500/50 px-4 py-2 text-sm font-medium text-violet-300 transition hover:bg-[#7258ff]/10"
                 >
                   Edit AI Results
                 </Link>
@@ -170,7 +191,7 @@ export default async function CampaignDetailPage({ params }: Props) {
 
               <Link
                 href={`/dashboard/campaigns/${campaign.id}/edit`}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium transition hover:bg-blue-500"
+                className="rounded-lg bg-[#5232ff] px-4 py-2 text-sm font-medium transition hover:bg-[#7258ff]"
               >
                 Edit Campaign
               </Link>
@@ -207,7 +228,7 @@ export default async function CampaignDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="mt-6 border-t border-slate-800 pt-5">
+          <div className="mt-6 border-t border-white/[0.08] pt-5">
             <p className="text-sm text-slate-500">Deskripsi</p>
             <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-300">
               {campaign.description || "Belum ada deskripsi."}
@@ -218,7 +239,7 @@ export default async function CampaignDetailPage({ params }: Props) {
         {aiResult ? (
           <section className="mt-8 space-y-6">
             <div>
-              <p className="text-sm font-medium tracking-widest text-blue-400">
+              <p className="text-sm font-medium tracking-widest text-violet-400">
                 AI GENERATED CAMPAIGN
               </p>
 
@@ -227,9 +248,9 @@ export default async function CampaignDetailPage({ params }: Props) {
               </h2>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
               <div>
-                <h3 className="font-semibold text-blue-300">
+                <h3 className="font-semibold text-violet-300">
                   Big Idea
                 </h3>
                 <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-300">
@@ -238,7 +259,7 @@ export default async function CampaignDetailPage({ params }: Props) {
               </div>
 
               <div className="mt-6">
-                <h3 className="font-semibold text-blue-300">
+                <h3 className="font-semibold text-violet-300">
                   Campaign Objective
                 </h3>
                 <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-300">
@@ -247,7 +268,7 @@ export default async function CampaignDetailPage({ params }: Props) {
               </div>
 
               <div className="mt-6">
-                <h3 className="font-semibold text-blue-300">
+                <h3 className="font-semibold text-violet-300">
                   Key Message
                 </h3>
                 <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-300">
@@ -263,9 +284,9 @@ export default async function CampaignDetailPage({ params }: Props) {
                 {aiResult.contentIdeas.map((idea, index) => (
                   <article
                     key={`${idea.title}-${index}`}
-                    className="rounded-xl border border-slate-800 bg-slate-900 p-5"
+                    className="rounded-xl border border-white/[0.08] bg-[#111019] p-5"
                   >
-                    <p className="text-sm text-blue-400">
+                    <p className="text-sm text-violet-400">
                       CONTENT IDEA {index + 1} · {idea.format}
                     </p>
 
@@ -276,13 +297,76 @@ export default async function CampaignDetailPage({ params }: Props) {
                     <p className="mt-2 whitespace-pre-wrap leading-7 text-slate-400">
                       {idea.description}
                     </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                        Status: {idea.workflowStatus ?? "idea"}
+                      </span>
+                      {idea.scheduledAt && (
+                        <span className="rounded-full bg-slate-800 px-3 py-1 text-slate-300">
+                          Jadwal: {new Intl.DateTimeFormat("id-ID", {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          }).format(new Date(idea.scheduledAt))}
+                        </span>
+                      )}
+                    </div>
+                    {aiResult.selectedIdeaIndex === index && (
+                      <span className="mt-4 inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                        Ide pilihan
+                      </span>
+                    )}
+                    {(idea.hook || idea.concept || idea.keyPoints || idea.visualDirection || idea.caption || idea.callToAction) && (
+                      <div className="mt-5 space-y-4 border-t border-white/[0.08] pt-5">
+                        {idea.hook && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-violet-300">Hook pembuka</h5>
+                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.hook}</p>
+                          </div>
+                        )}
+                        {idea.concept && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-violet-300">Angle dan konsep</h5>
+                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.concept}</p>
+                          </div>
+                        )}
+                        {idea.keyPoints && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-violet-300">Alur / poin utama</h5>
+                            <ol className="mt-1 list-decimal space-y-1 pl-5 text-sm leading-6 text-slate-300">
+                              {idea.keyPoints.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
+                            </ol>
+                          </div>
+                        )}
+                        {idea.visualDirection && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-violet-300">Arahan visual</h5>
+                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.visualDirection}</p>
+                          </div>
+                        )}
+                        {idea.caption && (
+                          <div>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <h5 className="text-sm font-semibold text-violet-300">Draft caption</h5>
+                              <CopyTextButton text={idea.caption} />
+                            </div>
+                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.caption}</p>
+                          </div>
+                        )}
+                        {idea.callToAction && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-violet-300">CTA konten</h5>
+                            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-300">{idea.callToAction}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-xl border border-blue-500/30 bg-blue-500/5 p-6">
-              <h3 className="font-semibold text-blue-300">
+            <div className="rounded-xl border border-violet-500/30 bg-[#5232ff]/5 p-6">
+              <h3 className="font-semibold text-violet-300">
                 Call to Action
               </h3>
 
@@ -291,8 +375,44 @@ export default async function CampaignDetailPage({ params }: Props) {
               </p>
             </div>
 
+            <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
+              <h3 className="font-semibold text-amber-200">
+                Sumber dan pemeriksaan fakta
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Gunakan tautan ini sebagai titik awal. Pastikan sumber mendukung
+                klaim yang dipakai dan periksa sumber asli sebelum publikasi.
+              </p>
+              {aiResult.claimsToVerify?.length ? (
+                <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  {aiResult.claimsToVerify.map((claim, index) => (
+                    <li key={index}>{claim}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-slate-400">
+                  Tidak ada klaim khusus yang ditandai untuk diperiksa.
+                </p>
+              )}
+              {aiResult.sources?.length ? (
+                <ul className="mt-4 space-y-2 text-sm">
+                  {aiResult.sources.map((source) => (
+                    <li key={source.url}>
+                      <a href={source.url} target="_blank" rel="noreferrer" className="text-violet-300 underline decoration-violet-300/40 underline-offset-4 hover:text-violet-200">
+                        {source.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-slate-400">
+                  Tidak ada sumber web tersimpan untuk campaign ini.
+                </p>
+              )}
+            </section>
+
             {aiResult.input && (
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+              <section className="rounded-xl border border-white/[0.08] bg-[#111019] p-5">
                 <h3 className="font-semibold">Input untuk AI</h3>
 
                 <div className="mt-4 space-y-3 text-sm">
@@ -317,12 +437,21 @@ export default async function CampaignDetailPage({ params }: Props) {
                     <span className="text-slate-500">Tone:</span>{" "}
                     {aiResult.input.tone || "-"}
                   </p>
+                  {aiResult.input.brandContext && (
+                    <p><span className="text-slate-500">Konteks brand:</span> {aiResult.input.brandContext}</p>
+                  )}
+                  {aiResult.input.contentPillars && (
+                    <p><span className="text-slate-500">Pilar konten:</span> {aiResult.input.contentPillars}</p>
+                  )}
+                  {aiResult.input.editorialRules && (
+                    <p><span className="text-slate-500">Pedoman editorial:</span> {aiResult.input.editorialRules}</p>
+                  )}
                 </div>
               </section>
             )}
           </section>
         ) : (
-          <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-6">
             <h2 className="text-xl font-semibold">
               Belum ada hasil AI tersimpan
             </h2>
@@ -337,7 +466,7 @@ export default async function CampaignDetailPage({ params }: Props) {
         <div className="mt-8">
           <Link
             href="/dashboard/campaigns"
-            className="inline-flex rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium transition hover:bg-slate-800"
+            className="inline-flex rounded-lg border border-white/10 px-4 py-2 text-sm font-medium transition hover:bg-slate-800"
           >
             Kembali ke Campaign Saya
           </Link>

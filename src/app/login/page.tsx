@@ -46,8 +46,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-white">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-8 shadow-2xl">
+    <main className="flex min-h-screen items-center justify-center app-background px-4 py-12 text-white">
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.09] bg-[#111019] p-7 shadow-[0_24px_90px_rgba(0,0,0,.42)] sm:p-9">
         <Link
           href="/"
           className="text-sm text-slate-400 hover:text-white"
@@ -86,7 +86,7 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="nama@email.com"
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-4 py-3 outline-none placeholder:text-slate-600 focus:border-violet-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 outline-none placeholder:text-slate-600 focus:border-violet-500"
             />
           </div>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Masukkan password"
-              className="w-full rounded-lg border border-white/10 bg-slate-950 px-4 py-3 outline-none placeholder:text-slate-600 focus:border-violet-500"
+              className="w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 outline-none placeholder:text-slate-600 focus:border-violet-500"
             />
           </div>
 
@@ -114,7 +114,7 @@ export default function LoginPage() {
             <p
               role="status"
               aria-live="polite"
-              className="rounded-lg border border-white/10 bg-slate-950 p-3 text-sm text-slate-300"
+              className="rounded-lg border border-white/10 bg-[#0b0a11] p-3 text-sm text-slate-300"
             >
               {message}
             </p>
@@ -123,7 +123,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-violet-600 px-4 py-3 font-semibold transition hover:bg-violet-500 disabled:opacity-60"
+            className="w-full rounded-lg bg-[#5232ff] px-4 py-3 font-semibold transition hover:bg-[#7258ff] disabled:opacity-60"
           >
             {loading ? "Memproses..." : "Login"}
           </button>

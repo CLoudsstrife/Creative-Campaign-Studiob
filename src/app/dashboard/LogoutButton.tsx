@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function LogoutButton() {
+export default function LogoutButton({ compact = false }: { compact?: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,14 +18,14 @@ export default function LogoutButton() {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        setError("Logout gagal. Silakan coba lagi.");
+        setError("Sign out failed. Please try again.");
         return;
       }
 
       router.replace("/login");
       router.refresh();
     } catch {
-      setError("Terjadi kesalahan saat logout. Silakan coba lagi.");
+      setError("Something went wrong while signing out. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -38,9 +37,9 @@ export default function LogoutButton() {
         type="button"
         onClick={handleLogout}
         disabled={loading}
-        className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+        className={`${compact ? "rounded-lg px-2 py-2" : "w-full rounded-lg px-3 py-2 text-left"} border border-white/[0.08] text-xs font-medium text-slate-400 transition hover:border-rose-400/20 hover:bg-rose-400/[0.06] hover:text-rose-200 disabled:opacity-50`}
       >
-        {loading ? "Logging out..." : "Logout"}
+        {loading ? "Signing out..." : "Sign out"}
       </button>
 
       {error && (

@@ -18,12 +18,27 @@ const LIMITS = {
   targetAudience: 500,
   platform: 100,
   tone: 100,
-  objective: 1000,
-  keyMessage: 1000,
-  callToAction: 500,
-  ideaTitle: 150,
+  objective: 2000,
+  keyMessage: 1800,
+  callToAction: 1000,
+  ideaTitle: 200,
   ideaFormat: 100,
-  ideaDescription: 1000,
+  ideaDescription: 1800,
+  ideaHook: 300,
+  ideaConcept: 1400,
+  ideaVisualDirection: 1000,
+  ideaCaption: 1600,
+  ideaCallToAction: 500,
+  ideaKeyPoint: 400,
+  ideaKeyPoints: 6,
+  ideaScheduleDays: 36,
+  claim: 500,
+  claims: 6,
+  sourceTitle: 250,
+  sourceUrl: 2000,
+  brandContext: 1200,
+  contentPillars: 1000,
+  editorialRules: 1200,
   contentIdeas: 20,
 };
 
@@ -33,12 +48,36 @@ type CampaignInputFields = {
   targetAudience: string;
   platform: string;
   tone: string;
+  brandContext?: string;
+  contentPillars?: string;
+  editorialRules?: string;
+  useGoogleSearch?: boolean;
 };
+
+type ContentWorkflowStatus =
+  | "idea"
+  | "draft"
+  | "review"
+  | "ready"
+  | "published";
 
 type ContentIdea = {
   title: string;
   format: string;
   description: string;
+  hook?: string;
+  concept?: string;
+  keyPoints?: string[];
+  visualDirection?: string;
+  caption?: string;
+  callToAction?: string;
+  workflowStatus?: ContentWorkflowStatus;
+  scheduledAt?: string;
+};
+
+type GroundedSource = {
+  title: string;
+  url: string;
 };
 
 type AIResult = {
@@ -48,6 +87,9 @@ type AIResult = {
   keyMessage: string;
   contentIdeas: ContentIdea[];
   callToAction: string;
+  selectedIdeaIndex?: number;
+  claimsToVerify?: string[];
+  sources?: GroundedSource[];
   input?: Partial<CampaignInputFields>;
 };
 
@@ -72,6 +114,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     value !== null &&
     !Array.isArray(value)
   );
+}
+
+function isValidHttpsUrl(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > LIMITS.sourceUrl) {
+    return false;
+  }
+
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function readFormText(
@@ -157,7 +211,7 @@ function validateAIResult(value: unknown): value is AIResult {
 
   const requiredFields: Record<string, number> = {
     campaignTitle: LIMITS.title,
-    bigIdea: LIMITS.description,
+    bigIdea: 4000,
     objective: LIMITS.objective,
     keyMessage: LIMITS.keyMessage,
     callToAction: LIMITS.callToAction,
@@ -207,6 +261,96 @@ function validateAIResult(value: unknown): value is AIResult {
         return false;
       }
     }
+
+    const optionalIdeaFields = [
+      ["hook", LIMITS.ideaHook],
+      ["concept", LIMITS.ideaConcept],
+      ["visualDirection", LIMITS.ideaVisualDirection],
+      ["caption", LIMITS.ideaCaption],
+      ["callToAction", LIMITS.ideaCallToAction],
+    ] as const;
+
+    for (const [field, maxLength] of optionalIdeaFields) {
+      const text = idea[field];
+
+      if (
+        text !== undefined &&
+        (typeof text !== "string" || text.trim().length > maxLength)
+      ) {
+        return false;
+      }
+    }
+
+    if (
+      idea.keyPoints !== undefined &&
+      (!Array.isArray(idea.keyPoints) ||
+        idea.keyPoints.length > LIMITS.ideaKeyPoints ||
+        !idea.keyPoints.every(
+          (point) =>
+            typeof point === "string" &&
+            point.trim().length > 0 &&
+            point.trim().length <= LIMITS.ideaKeyPoint
+        ))
+    ) {
+      return false;
+    }
+
+    if (
+      idea.workflowStatus !== undefined &&
+      !["idea", "draft", "review", "ready", "published"].includes(
+        idea.workflowStatus as string
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      idea.scheduledAt !== undefined &&
+      (typeof idea.scheduledAt !== "string" ||
+        Number.isNaN(Date.parse(idea.scheduledAt)))
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    value.selectedIdeaIndex !== undefined &&
+    (typeof value.selectedIdeaIndex !== "number" ||
+      !Number.isInteger(value.selectedIdeaIndex) ||
+      (value.selectedIdeaIndex as number) < 0 ||
+      (value.selectedIdeaIndex as number) >= value.contentIdeas.length)
+  ) {
+    return false;
+  }
+
+  if (
+    value.claimsToVerify !== undefined &&
+    (!Array.isArray(value.claimsToVerify) ||
+      value.claimsToVerify.length > LIMITS.claims ||
+      !value.claimsToVerify.every(
+        (claim) =>
+          typeof claim === "string" &&
+          claim.trim().length > 0 &&
+          claim.trim().length <= LIMITS.claim
+      ))
+  ) {
+    return false;
+  }
+
+  if (
+    value.sources !== undefined &&
+    (!Array.isArray(value.sources) ||
+      value.sources.length > 8 ||
+      !value.sources.every(
+        (source) =>
+          isRecord(source) &&
+          typeof source.title === "string" &&
+          source.title.trim().length > 0 &&
+          source.title.trim().length <= LIMITS.sourceTitle &&
+          isValidHttpsUrl(source.url)
+      ))
+  ) {
+    return false;
   }
 
   // Field input tambahan bersifat opsional.
@@ -222,6 +366,9 @@ function validateAIResult(value: unknown): value is AIResult {
       targetAudience: LIMITS.targetAudience,
       platform: LIMITS.platform,
       tone: LIMITS.tone,
+      brandContext: LIMITS.brandContext,
+      contentPillars: LIMITS.contentPillars,
+      editorialRules: LIMITS.editorialRules,
     };
 
     for (const [field, maxLength] of Object.entries(inputLimits)) {
@@ -234,6 +381,13 @@ function validateAIResult(value: unknown): value is AIResult {
       ) {
         return false;
       }
+    }
+
+    if (
+      value.input.useGoogleSearch !== undefined &&
+      typeof value.input.useGoogleSearch !== "boolean"
+    ) {
+      return false;
     }
   }
 
@@ -250,8 +404,36 @@ function normalizeAIResult(result: AIResult): AIResult {
       title: idea.title.trim(),
       format: idea.format.trim(),
       description: idea.description.trim(),
+      ...(idea.hook !== undefined && { hook: idea.hook.trim() }),
+      ...(idea.concept !== undefined && { concept: idea.concept.trim() }),
+      ...(idea.keyPoints !== undefined && {
+        keyPoints: idea.keyPoints.map((point) => point.trim()),
+      }),
+      ...(idea.visualDirection !== undefined && {
+        visualDirection: idea.visualDirection.trim(),
+      }),
+      ...(idea.caption !== undefined && { caption: idea.caption.trim() }),
+      ...(idea.callToAction !== undefined && {
+        callToAction: idea.callToAction.trim(),
+      }),
+      workflowStatus: idea.workflowStatus ?? "idea",
+      ...(idea.scheduledAt && {
+        scheduledAt: new Date(idea.scheduledAt).toISOString(),
+      }),
     })),
     callToAction: result.callToAction.trim(),
+    ...(result.selectedIdeaIndex !== undefined && {
+      selectedIdeaIndex: result.selectedIdeaIndex,
+    }),
+    ...(result.claimsToVerify !== undefined && {
+      claimsToVerify: result.claimsToVerify.map((claim) => claim.trim()),
+    }),
+    ...(result.sources !== undefined && {
+      sources: result.sources.map((source) => ({
+        title: source.title.trim(),
+        url: source.url,
+      })),
+    }),
     ...(result.input !== undefined && {
       input: {
         ...(result.input.brandName !== undefined && {
@@ -268,6 +450,18 @@ function normalizeAIResult(result: AIResult): AIResult {
         }),
         ...(result.input.tone !== undefined && {
           tone: result.input.tone.trim(),
+        }),
+        ...(result.input.brandContext !== undefined && {
+          brandContext: result.input.brandContext.trim(),
+        }),
+        ...(result.input.contentPillars !== undefined && {
+          contentPillars: result.input.contentPillars.trim(),
+        }),
+        ...(result.input.editorialRules !== undefined && {
+          editorialRules: result.input.editorialRules.trim(),
+        }),
+        ...(result.input.useGoogleSearch !== undefined && {
+          useGoogleSearch: result.input.useGoogleSearch,
         }),
       },
     }),
@@ -364,6 +558,7 @@ export async function deleteCampaign(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/campaigns");
+    revalidatePath("/dashboard/calendar");
 
     return { success: "Campaign berhasil dihapus." };
   } catch (error) {
@@ -423,6 +618,7 @@ export async function updateCampaign(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/campaigns");
+    revalidatePath("/dashboard/calendar");
     revalidatePath(`/dashboard/campaigns/${campaignId}/edit`);
 
     return { success: "Campaign berhasil diperbarui." };
@@ -491,6 +687,7 @@ export async function saveAICampaign(
     const aiResult = JSON.stringify({
       ...result,
       input: {
+        ...result.input,
         brandName: cleaned.brandName,
         product: cleaned.product,
         targetAudience: cleaned.targetAudience,
@@ -515,6 +712,7 @@ export async function saveAICampaign(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/campaigns");
+    revalidatePath("/dashboard/calendar");
 
     return { success: "Campaign AI berhasil disimpan!" };
   } catch (error) {
@@ -582,6 +780,7 @@ export async function updateAICampaign(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/campaigns");
+    revalidatePath("/dashboard/calendar");
     revalidatePath(`/dashboard/campaigns/${campaignId}`);
     revalidatePath(`/dashboard/campaigns/${campaignId}/edit`);
 

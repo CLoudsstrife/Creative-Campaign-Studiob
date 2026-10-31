@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #080811;
+  --foreground: #f4f1fa;
+  --surface: #111019;
+  --accent: #a78bfa;
+  --electric-violet: #5632ff;
+  --electric-lilac: #9b76ff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--background); scroll-behavior: smooth; }
+.app-background {
+  min-height: 100vh;
+  background-color: #080811;
+  background-image:
+    radial-gradient(ellipse 85% 52% at 8% 0%, rgb(44 62 192 / 34%), transparent 72%),
+    radial-gradient(ellipse 68% 50% at 100% 12%, rgb(99 42 220 / 32%), transparent 72%),
+    radial-gradient(ellipse 82% 45% at 54% 100%, rgb(34 50 145 / 24%), transparent 72%),
+    linear-gradient(132deg, #080811 0%, #0b0a18 48%, #090711 100%);
+  background-attachment: fixed;
+}
+
+/* Dashboard background: near-black with a purple glow in the bottom-left corner. */
+.dashboard-background {
+  min-height: 100vh;
+  background-color: #070712;
+  background-image:
+    radial-gradient(ellipse 55% 38% at 0% 100%, rgb(76 44 235 / 30%), transparent 72%),
+    radial-gradient(ellipse 45% 30% at 100% 0%, rgb(58 48 200 / 14%), transparent 72%),
+    linear-gradient(180deg, #080814 0%, #070711 100%);
+  background-attachment: fixed;
 }
 
 body {
+  min-height: 100%;
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), Inter, ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01" on, "cv11" on;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { font-family: var(--font-sora), var(--font-manrope), sans-serif; letter-spacing: -0.025em; }
+
+/* Use the UI font (Manrope) on dashboard headings to match the design. */
+.font-ui { font-family: var(--font-manrope), Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.015em; }
+
+::selection { background: rgb(167 139 250 / 35%); color: white; }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 3px; }
+
+/* Form controls: readable placeholders and one consistent dropdown arrow app-wide. */
+@layer base {
+  input::placeholder, textarea::placeholder { color: #8d90a8; opacity: 1; }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8abc4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.1rem;
+    padding-right: 2.75rem;
+  }
+  select option { background-color: #0e0d1f; color: #f4f1fa; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -17,29 +16,28 @@ export default async function GenerateCampaignPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-4xl">
+    <main className="px-6 pb-12 lg:pr-7">
+      <div className="mx-auto max-w-5xl">
         <Link
           href="/dashboard/campaigns"
-          className="text-sm text-blue-400 transition hover:text-blue-300"
+          className="inline-flex items-center gap-2 text-sm text-violet-400 transition hover:text-violet-300"
         >
-          ← Kembali ke Campaign Saya
+          <span aria-hidden="true">←</span> Back to Campaigns
         </Link>
 
-        <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-blue-400">
-            CREATIVEFLOW AI
+        <header className="mt-6 border-b border-white/[0.07] pb-8">
+          <p className="text-[10px] font-semibold tracking-[.2em] text-violet-300">
+            WORKSPACE / CREATIVE STUDIO
           </p>
-          <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
-            AI Campaign Generator
+          <h1 className="font-ui mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Build your campaign direction
           </h1>
-          <p className="mt-3 max-w-2xl text-slate-400">
-            Masukkan brief brand kamu dan biarkan AI membantu menyusun konsep
-            campaign marketing beserta ide kontennya.
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base sm:leading-7">
+            Start with a clear brief. Get a creative strategy and content ideas that are ready to take into production.
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
+        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#0b0a1c]/80 p-5 shadow-[0_20px_80px_rgba(0,0,0,.18)] sm:p-8">
           <CampaignGeneratorForm />
         </section>
       </div>
