@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { saveAICampaign } from "../actions";
 import CopyTextButton from "../CopyTextButton";
 
@@ -119,6 +120,7 @@ function parseBrandProfile(value: string): BrandProfile | null {
 }
 
 export default function CampaignGeneratorForm() {
+  const router = useRouter();
   const [brandName, setBrandName] = useState("");
   const [product, setProduct] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
@@ -309,6 +311,7 @@ export default function CampaignGeneratorForm() {
       setProgress(100);
       setResult(data.result);
       setSelectedIdeaIndex(data.result.selectedIdeaIndex ?? null);
+      router.refresh();
     } catch (err) {
       if (controller.signal.aborted) {
         setError("Campaign generation was cancelled.");

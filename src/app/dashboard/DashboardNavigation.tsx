@@ -154,12 +154,12 @@ const idleClass = "border border-transparent text-slate-300 hover:bg-white/[0.04
 
 export default function DashboardNavigation({
   email,
-  generationsUsed = 0,
-  generationsLimit = 10000,
+  generationsUsed,
+  generationsLimit,
 }: {
   email: string;
-  generationsUsed?: number;
-  generationsLimit?: number;
+  generationsUsed: number;
+  generationsLimit: number;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -243,7 +243,7 @@ export default function DashboardNavigation({
             >
               <div className="h-full rounded-full bg-gradient-to-r from-[#4a3df0] to-[#6c5bff]" style={{ width: `${percent}%` }} />
             </div>
-            <p className="mt-2.5 text-xs text-slate-400">{percent}% used</p>
+            <p className="mt-2.5 text-xs text-slate-400">{percent}% of cumulative app usage</p>
           </div>
         </div>
       </aside>

@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateAIText, type GroundedSource } from "@/lib/gemini";
 import { aiGenerationRateLimit } from "@/lib/ratelimit";
+import {
+  AI_GENERATIONS_LIMIT,
+  getAIGenerationCount,
+  recordSuccessfulAIGeneration,
+} from "@/lib/ai-usage";
 
 export const runtime = "nodejs";
 
@@ -524,13 +529,29 @@ Jangan menambahkan field lain di luar struktur JSON tersebut.
     );
   }
 
+  // This is the app's cumulative quota, separate from Gemini's provider quota.
+  try {
+    if (await getAIGenerationCount(userId) >= AI_GENERATIONS_LIMIT) {
+      return NextResponse.json(
+        { error: "Batas total AI Generations akun ini sudah tercapai." },
+        { status: 429 }
+      );
+    }
+  } catch (error) {
+    console.error("AI generation usage check failed:", error);
+    return NextResponse.json(
+      { error: "Penggunaan AI tidak dapat diperiksa. Silakan coba lagi." },
+      { status: 503 }
+    );
+  }
+
   // 8. Jalankan Gemini setelah request lolos rate limit.
   try {
     const aiStartedAt = Date.now();
 
     console.info("[Campaign Generator] Gemini request started.");
 
-    const { text: aiText, sources } = await generateAIText(
+    const { text: aiText, sources, usage } = await generateAIText(
       prompt,
       request.signal,
       useGoogleSearch
@@ -669,7 +690,25 @@ Jangan menambahkan field lain di luar struktur JSON tersebut.
       return new Response(null, { status: 204 });
     }
 
-    return NextResponse.json({ result });
+    let recorded: boolean;
+    try {
+      recorded = await recordSuccessfulAIGeneration(userId, usage);
+    } catch (error) {
+      console.error("AI generation usage persistence failed:", error);
+      return NextResponse.json(
+        { error: "Hasil AI siap, tetapi penggunaan belum tersimpan. Silakan coba lagi." },
+        { status: 503 }
+      );
+    }
+
+    if (!recorded) {
+      return NextResponse.json(
+        { error: "Batas total AI Generations akun ini sudah tercapai." },
+        { status: 429 }
+      );
+    }
+
+    return NextResponse.json({ result, usage });
   } catch (error) {
     if (request.signal.aborted) {
       console.info(
@@ -681,10 +720,50 @@ Jangan menambahkan field lain di luar struktur JSON tersebut.
 
     console.error("Campaign generation failed:", error);
 
+    const status =
+      typeof error === "object" && error !== null && "status" in error
+        ? Number(error.status)
+        : undefined;
+    const message = error instanceof Error ? error.message : String(error);
+    if (status === 429 || /RESOURCE_EXHAUSTED|\b429\b/i.test(message)) {
+      return NextResponse.json(
+        {
+          error: "Kuota atau kapasitas Gemini sedang terbatas. Tunggu sebentar lalu coba lagi.",
+          errorCode: "GEMINI_RATE_LIMIT",
+          retryable: true,
+        },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+
+    if ([408, 500, 502, 503, 504].includes(status ?? 0) || /ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed/i.test(message)) {
+      return NextResponse.json(
+        {
+          error: "Gemini sedang lambat atau sementara tidak tersedia. Coba lagi dalam beberapa detik.",
+          errorCode: "GEMINI_TEMPORARILY_UNAVAILABLE",
+          retryable: true,
+        },
+        { status: 503, headers: { "Retry-After": "5" } }
+      );
+    }
+
+    if ([400, 401, 403, 404].includes(status ?? 0)) {
+      return NextResponse.json(
+        {
+          error: "Gemini menolak konfigurasi request. Periksa API key, akses model, dan setelan provider di deployment.",
+          errorCode: "GEMINI_CONFIGURATION",
+          retryable: false,
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       {
         error:
-          "Gagal membuat campaign dengan AI. Silakan coba lagi.",
+          "Generasi AI gagal karena kesalahan server. Coba lagi; jika berulang, periksa log fungsi deployment.",
+        errorCode: "GENERATION_FAILED",
+        retryable: false,
       },
       { status: 500 }
     );

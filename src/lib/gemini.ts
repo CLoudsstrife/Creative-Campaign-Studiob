@@ -18,8 +18,58 @@ const gemini = new GoogleGenAI({
   },
 });
 
-const MAX_ATTEMPTS = 2;
-const RETRY_DELAY_MS = 1_500;
+const MAX_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 1_000;
+
+const CAMPAIGN_RESPONSE_SCHEMA = {
+  type: "object",
+  properties: {
+    campaignTitle: { type: "string" },
+    bigIdea: { type: "string" },
+    objective: { type: "string" },
+    keyMessage: { type: "string" },
+    contentIdeas: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          format: { type: "string" },
+          description: { type: "string" },
+          hook: { type: "string" },
+          concept: { type: "string" },
+          keyPoints: {
+            type: "array",
+            minItems: 3,
+            maxItems: 6,
+            items: { type: "string" },
+          },
+          visualDirection: { type: "string" },
+          caption: { type: "string" },
+          callToAction: { type: "string" },
+        },
+        required: [
+          "title", "format", "description", "hook", "concept", "keyPoints",
+          "visualDirection", "caption", "callToAction",
+        ],
+        additionalProperties: false,
+      },
+    },
+    callToAction: { type: "string" },
+    claimsToVerify: {
+      type: "array",
+      maxItems: 6,
+      items: { type: "string" },
+    },
+  },
+  required: [
+    "campaignTitle", "bigIdea", "objective", "keyMessage", "contentIdeas",
+    "callToAction", "claimsToVerify",
+  ],
+  additionalProperties: false,
+};
 
 export type GroundedSource = {
   title: string;
@@ -68,7 +118,7 @@ function isTemporaryError(error: unknown): boolean {
   return (
     [408, 429, 500, 502, 503, 504].includes(status ?? 0) ||
     /\b(408|429|500|502|503|504)\b/.test(message) ||
-    /UNAVAILABLE|RESOURCE_EXHAUSTED|INTERNAL|DEADLINE_EXCEEDED/i.test(
+    /UNAVAILABLE|RESOURCE_EXHAUSTED|INTERNAL|DEADLINE_EXCEEDED|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|fetch failed|network error/i.test(
       message
     )
   );
@@ -78,7 +128,11 @@ export async function generateAIText(
   prompt: string,
   signal?: AbortSignal,
   useGoogleSearch = false
-): Promise<{ text: string; sources: GroundedSource[] }> {
+): Promise<{
+  text: string;
+  sources: GroundedSource[];
+  usage: { promptTokens?: number; responseTokens?: number };
+}> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     if (signal?.aborted) {
       throw (
@@ -95,6 +149,7 @@ export async function generateAIText(
           abortSignal: signal,
           maxOutputTokens: 16_384,
           responseMimeType: "application/json",
+          responseJsonSchema: CAMPAIGN_RESPONSE_SCHEMA,
           ...(useGoogleSearch && { tools: [{ googleSearch: {} }] }),
         },
       });
@@ -134,7 +189,14 @@ export async function generateAIText(
         }
       }
 
-      return { text, sources: [...sourceMap.values()].slice(0, 8) };
+      return {
+        text,
+        sources: [...sourceMap.values()].slice(0, 8),
+        usage: {
+          promptTokens: response.usageMetadata?.promptTokenCount,
+          responseTokens: response.usageMetadata?.candidatesTokenCount,
+        },
+      };
     } catch (error) {
       if (signal?.aborted) {
         throw (
@@ -155,7 +217,9 @@ export async function generateAIText(
         throw error;
       }
 
-      await wait(RETRY_DELAY_MS, signal);
+      const exponentialDelay = RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+      const jitter = Math.floor(Math.random() * 500);
+      await wait(exponentialDelay + jitter, signal);
     }
   }
 

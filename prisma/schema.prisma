@@ -28,3 +28,13 @@ model Campaign {
   @@map("campaigns")
 }
 
+model AIGenerationUsage {
+  userId             String   @id @db.Uuid
+  generationCount    Int      @default(0)
+  promptTokenCount   BigInt   @default(0)
+  responseTokenCount BigInt   @default(0)
+  updatedAt          DateTime @updatedAt
+
+  @@map("ai_generation_usage")
+}
+
