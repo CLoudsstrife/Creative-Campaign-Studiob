@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveAICampaign } from "../actions";
 import CopyTextButton from "../CopyTextButton";
+import AgentProgress from "./AgentProgress";
 
 type ContentIdea = {
   title: string;
@@ -34,6 +35,9 @@ type BrandProfile = {
   contentPillars: string;
   editorialRules: string;
   useGoogleSearch: boolean;
+  preset?: "bisik";
+  topic?: string;
+  topicContext?: string;
 };
 
 type CampaignResult = {
@@ -54,73 +58,32 @@ type ApiResponse = {
   error?: string;
 };
 
+type BisikPreset = {
+  slug: string;
+  brandName: string;
+  productDescription: string;
+  targetAudience: string;
+  platform: string;
+  tone: string;
+  brandContext: string;
+  contentPillars: string;
+  editorialRules: string;
+  defaultGoogleSearch: boolean;
+};
+
 const inputClass =
   "mt-2 w-full rounded-lg border border-white/10 bg-[#0b0a11] px-4 py-3 text-white outline-none transition focus:border-violet-500";
 
 const labelClass = "text-sm font-medium text-slate-200";
-// Kept as-is so profiles users already saved in their browser keep loading.
-const BISIK_PROFILE_KEY = "creativeflow-bisik-profile-v1";
-
-const DEFAULT_BISIK_PROFILE: BrandProfile = {
-  brandName: "BISIK by BEM Petra",
-  product:
-    "An educational account and discussion space covering social-political issues, national affairs, and current events for university students and young people.",
-  targetAudience:
-    "Petra students, university students in Surabaya, and young people who want to understand social-political issues in clear language.",
-  platform: "Instagram",
-  tone: "Friendly",
-  brandContext:
-    "BISIK is an education and discussion channel on social-political issues for university students and young people. Its goal is to help the audience understand issues and encourage reasoned discussion.",
-  contentPillars:
-    "Social-political issue literacy; policy impact on students; local issues in Surabaya and East Java; fact-checking and media literacy; youth dialogue and participation.",
-  editorialRules:
-    "Separate facts, context, and opinion. Avoid sensational headlines and personal attacks. Show relevant context and viewpoints. Never invent numbers, quotes, policies, or events. Flag anything that needs verification before publishing.",
-  useGoogleSearch: true,
-};
-
-function parseBrandProfile(value: string): BrandProfile | null {
-  try {
-    const parsed: unknown = JSON.parse(value);
-
-    if (typeof parsed !== "object" || parsed === null) return null;
-
-    const profile = parsed as Record<string, unknown>;
-    const textFields: Array<keyof Omit<BrandProfile, "useGoogleSearch">> = [
-      "brandName",
-      "product",
-      "targetAudience",
-      "platform",
-      "tone",
-      "brandContext",
-      "contentPillars",
-      "editorialRules",
-    ];
-
-    if (
-      !textFields.every((field) => typeof profile[field] === "string") ||
-      typeof profile.useGoogleSearch !== "boolean"
-    ) {
-      return null;
-    }
-
-    return {
-      brandName: profile.brandName as string,
-      product: profile.product as string,
-      targetAudience: profile.targetAudience as string,
-      platform: profile.platform as string,
-      tone: profile.tone as string,
-      brandContext: profile.brandContext as string,
-      contentPillars: profile.contentPillars as string,
-      editorialRules: profile.editorialRules as string,
-      useGoogleSearch: profile.useGoogleSearch as boolean,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export default function CampaignGeneratorForm() {
+export default function CampaignGeneratorForm({
+  bisikPreset,
+}: {
+  bisikPreset: BisikPreset | null;
+}) {
   const router = useRouter();
+  const [isBisikMode, setIsBisikMode] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [topicContext, setTopicContext] = useState("");
   const [brandName, setBrandName] = useState("");
   const [product, setProduct] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
@@ -128,7 +91,6 @@ export default function CampaignGeneratorForm() {
   const [contentPillars, setContentPillars] = useState("");
   const [editorialRules, setEditorialRules] = useState("");
   const [useGoogleSearch, setUseGoogleSearch] = useState(true);
-  const [profileMessage, setProfileMessage] = useState("");
 
   const [campaignObjective, setCampaignObjective] =
     useState("Brand Awareness");
@@ -148,7 +110,6 @@ export default function CampaignGeneratorForm() {
   const [expandedIdeaIndex, setExpandedIdeaIndex] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -157,88 +118,13 @@ export default function CampaignGeneratorForm() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const applyBrandProfile = useCallback((profile: BrandProfile) => {
-    setBrandName(profile.brandName);
-    setProduct(profile.product);
-    setTargetAudience(profile.targetAudience);
-    setPlatform(profile.platform);
-    setTone(profile.tone);
-    setBrandContext(profile.brandContext);
-    setContentPillars(profile.contentPillars);
-    setEditorialRules(profile.editorialRules);
-    setUseGoogleSearch(profile.useGoogleSearch);
-  }, []);
-
-  useEffect(() => {
-    const savedProfile = window.localStorage.getItem(BISIK_PROFILE_KEY);
-
-    if (!savedProfile) return;
-
-    const profile = parseBrandProfile(savedProfile);
-
-    if (profile) {
-      applyBrandProfile(profile);
-      setProfileMessage("Saved BISIK profile loaded from this browser.");
-    } else {
-      window.localStorage.removeItem(BISIK_PROFILE_KEY);
-    }
-  }, [applyBrandProfile]);
-
-  function loadBrandProfile() {
-    const savedProfile = window.localStorage.getItem(BISIK_PROFILE_KEY);
-
-    if (savedProfile) {
-      const profile = parseBrandProfile(savedProfile);
-
-      if (profile) {
-        applyBrandProfile(profile);
-        setProfileMessage("Saved BISIK profile loaded.");
-        return;
-      } else {
-        window.localStorage.removeItem(BISIK_PROFILE_KEY);
-      }
-    }
-
-    applyBrandProfile(DEFAULT_BISIK_PROFILE);
-    setProfileMessage("Default BISIK profile loaded. Adjust it and save if needed.");
+  function selectBisikMode() {
+    if (!bisikPreset) return;
+    setIsBisikMode(true);
+    setPlatform(bisikPreset.platform);
+    setTone(bisikPreset.tone);
+    setUseGoogleSearch(bisikPreset.defaultGoogleSearch);
   }
-
-  function saveBrandProfile() {
-    const profile: BrandProfile = {
-      brandName: brandName.trim(),
-      product: product.trim(),
-      targetAudience: targetAudience.trim(),
-      platform,
-      tone,
-      brandContext: brandContext.trim(),
-      contentPillars: contentPillars.trim(),
-      editorialRules: editorialRules.trim(),
-      useGoogleSearch,
-    };
-
-    try {
-      window.localStorage.setItem(BISIK_PROFILE_KEY, JSON.stringify(profile));
-      setProfileMessage("BISIK profile saved in this browser.");
-    } catch {
-      setProfileMessage("The profile couldn't be saved in this browser.");
-    }
-  }
-
-  useEffect(() => {
-    if (!loading) return;
-
-    const interval = window.setInterval(() => {
-      setProgress((current) => {
-        if (current < 30) return Math.min(current + 3, 30);
-        if (current < 60) return Math.min(current + 1.5, 60);
-        if (current < 80) return Math.min(current + 0.5, 80);
-        if (current < 90) return Math.min(current + 0.15, 90);
-        return current;
-      });
-    }, 250);
-
-    return () => window.clearInterval(interval);
-  }, [loading]);
 
   async function handleGenerate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -255,7 +141,12 @@ export default function CampaignGeneratorForm() {
 
     const effectiveTone = tone === "Other" ? customTone.trim() : tone;
 
-    if (!effectiveObjective || !effectivePlatform || !effectiveTone) {
+    if (
+      (!isBisikMode && !effectiveObjective) ||
+      (isBisikMode && !topic.trim()) ||
+      !effectivePlatform ||
+      !effectiveTone
+    ) {
       setError("Please fill in all custom options that are still empty.");
       return;
     }
@@ -264,7 +155,6 @@ export default function CampaignGeneratorForm() {
     abortControllerRef.current = controller;
 
     setLoading(true);
-    setProgress(0);
     setError("");
     setResult(null);
     setSelectedIdeaIndex(null);
@@ -274,25 +164,31 @@ export default function CampaignGeneratorForm() {
     setSaved(false);
 
     try {
-      setProgress(10);
-
       const response = await fetch("/api/campaigns/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          brandName: brandName.trim(),
-          product: product.trim(),
-          targetAudience: targetAudience.trim(),
-          campaignObjective: effectiveObjective,
-          usp: usp.trim(),
-          audiencePainPoint: audiencePainPoint.trim(),
+          ...(isBisikMode
+            ? {
+                preset: "bisik",
+                topic: topic.trim(),
+                topicContext: topicContext.trim(),
+              }
+            : {
+                brandName: brandName.trim(),
+                product: product.trim(),
+                targetAudience: targetAudience.trim(),
+                campaignObjective: effectiveObjective,
+                usp: usp.trim(),
+                audiencePainPoint: audiencePainPoint.trim(),
+                brandContext: brandContext.trim(),
+                contentPillars: contentPillars.trim(),
+                editorialRules: editorialRules.trim(),
+              }),
           platform: effectivePlatform,
           tone: effectiveTone,
-          brandContext: brandContext.trim(),
-          contentPillars: contentPillars.trim(),
-          editorialRules: editorialRules.trim(),
           useGoogleSearch,
         }),
         signal: controller.signal,
@@ -308,7 +204,6 @@ export default function CampaignGeneratorForm() {
         throw new Error("The AI response did not include a campaign result.");
       }
 
-      setProgress(100);
       setResult(data.result);
       setSelectedIdeaIndex(data.result.selectedIdeaIndex ?? null);
       router.refresh();
@@ -322,8 +217,6 @@ export default function CampaignGeneratorForm() {
             : "Something went wrong while contacting the AI."
         );
       }
-
-      setProgress(0);
     } finally {
       if (abortControllerRef.current === controller) {
         abortControllerRef.current = null;
@@ -350,9 +243,9 @@ export default function CampaignGeneratorForm() {
 
     try {
       const response = await saveAICampaign({
-        brandName: brandName.trim(),
-        product: product.trim(),
-        targetAudience: targetAudience.trim(),
+        brandName: isBisikMode ? bisikPreset!.brandName : brandName.trim(),
+        product: isBisikMode ? bisikPreset!.productDescription : product.trim(),
+        targetAudience: isBisikMode ? bisikPreset!.targetAudience : targetAudience.trim(),
         platform: effectivePlatform,
         tone: effectiveTone,
         result: {
@@ -360,14 +253,24 @@ export default function CampaignGeneratorForm() {
           ...(selectedIdeaIndex !== null && { selectedIdeaIndex }),
           input: {
             ...result.input,
-            brandName: brandName.trim(),
-            product: product.trim(),
-            targetAudience: targetAudience.trim(),
+            brandName: isBisikMode ? bisikPreset!.brandName : brandName.trim(),
+            product: isBisikMode ? bisikPreset!.productDescription : product.trim(),
+            targetAudience: isBisikMode ? bisikPreset!.targetAudience : targetAudience.trim(),
             platform: effectivePlatform,
             tone: effectiveTone,
-            brandContext: brandContext.trim(),
-            contentPillars: contentPillars.trim(),
-            editorialRules: editorialRules.trim(),
+            ...(isBisikMode && {
+              preset: "bisik" as const,
+              topic: topic.trim(),
+              topicContext: topicContext.trim(),
+              brandContext: bisikPreset!.brandContext,
+              contentPillars: bisikPreset!.contentPillars,
+              editorialRules: bisikPreset!.editorialRules,
+            }),
+            ...(!isBisikMode && {
+              brandContext: brandContext.trim(),
+              contentPillars: contentPillars.trim(),
+              editorialRules: editorialRules.trim(),
+            }),
             useGoogleSearch,
           },
         },
@@ -387,116 +290,121 @@ export default function CampaignGeneratorForm() {
     }
   }
 
-  const progressStage =
-    progress < 30
-      ? "Preparing the request..."
-      : progress < 90
-        ? "Gemini is generating your campaign..."
-        : "Waiting for the AI's response...";
-
   return (
     <div>
       <form onSubmit={handleGenerate} className="space-y-5">
+        <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label="Generator mode">
+          <button
+            type="button"
+            aria-pressed={!isBisikMode}
+            onClick={() => setIsBisikMode(false)}
+            className={`rounded-xl border p-4 text-left transition ${!isBisikMode ? "border-violet-400/50 bg-violet-500/10" : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"}`}
+          >
+            <span className="block font-medium text-white">General campaign</span>
+            <span className="mt-1 block text-xs text-slate-400">Build a campaign for any brand or product.</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={isBisikMode}
+            disabled={!bisikPreset}
+            onClick={selectBisikMode}
+            className={`rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${isBisikMode ? "border-violet-400/50 bg-violet-500/10" : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"}`}
+          >
+            <span className="block font-medium text-white">BISIK post ideas</span>
+            <span className="mt-1 block text-xs text-slate-400">Plan discussion content from a topic or occasion.</span>
+          </button>
+        </div>
+        {!bisikPreset && (
+          <p role="status" className="text-xs text-amber-300">
+            The BISIK preset is unavailable until its database migration has been applied.
+          </p>
+        )}
+
         <div className="border-b border-white/[0.07] pb-4">
-          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">01 / BRAND PROFILE</p>
-          <p className="mt-1 text-xs text-slate-500">Introduce your brand and the editorial direction to keep.</p>
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+            {isBisikMode ? "01 / BISIK PRESET" : "01 / BRAND PROFILE"}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {isBisikMode
+              ? "The BISIK editorial profile is loaded from the database for you."
+              : "Introduce your brand and the editorial direction to keep."}
+          </p>
         </div>
-        {/* Brand name */}
-        <div>
-          <label htmlFor="brandName" className={labelClass}>
-            Brand Name *
-          </label>
-          <input
-            id="brandName"
-            value={brandName}
-            onChange={(e) => setBrandName(e.target.value)}
-            required
-            maxLength={150}
-            placeholder="Example: Nusantara Coffee"
-            className={inputClass}
-          />
-          <p className="mt-1 text-xs text-slate-500">Use the name of the brand you&apos;re promoting. You can load a saved profile if it&apos;s relevant.</p>
-        </div>
-
-        <details className="group rounded-xl border border-violet-300/15 bg-[#5232ff]/[0.035] p-4">
-          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-            <span>
-              <span className="block font-semibold text-violet-100">Saved brand profile <span className="ml-1 text-xs font-normal text-slate-500">optional</span></span>
-              <span className="mt-1 block text-xs text-slate-500">The BISIK preset is a personal feature; use it only if it fits your campaign&apos;s brand.</span>
-            </span>
-            <span className="rounded-full border border-violet-300/20 bg-violet-300/[0.08] px-2.5 py-1 text-[10px] font-medium text-violet-200">BISIK preset · optional</span>
-          </summary>
-          <div className="mt-4 space-y-4 border-t border-white/[0.07] pt-4">
-            <div className="flex flex-wrap justify-end gap-2">
-              <button
-                type="button"
-                onClick={loadBrandProfile}
-                className="rounded-lg border border-violet-400/30 px-3 py-2 text-xs font-medium text-violet-200 transition hover:bg-[#7258ff]/10"
-              >
-                Load BISIK profile
-              </button>
-              <button
-                type="button"
-                onClick={saveBrandProfile}
-                className="rounded-lg bg-[#5232ff] px-3 py-2 text-xs font-medium text-white transition hover:bg-[#7258ff]"
-              >
-                Save profile
-              </button>
+        {isBisikMode ? (
+          <div className="rounded-xl border border-violet-300/15 bg-[#5232ff]/[0.035] p-4">
+            <p className="font-medium text-violet-100">{bisikPreset?.brandName}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">{bisikPreset?.brandContext}</p>
+          </div>
+        ) : (
+          <>
+            <div>
+              <label htmlFor="brandName" className={labelClass}>Brand Name *</label>
+              <input
+                id="brandName"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                required
+                maxLength={150}
+                placeholder="Example: Nusantara Coffee"
+                className={inputClass}
+              />
             </div>
-
-          <div>
-            <label htmlFor="brandContext" className={labelClass}>
-              Brand purpose and context
-            </label>
-            <textarea
-              id="brandContext"
-              value={brandContext}
-              onChange={(event) => setBrandContext(event.target.value)}
-              maxLength={1200}
-              rows={3}
-              placeholder="Describe the account's purpose, its role, and what you want to bring to your audience."
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="contentPillars" className={labelClass}>
-              Content pillars
-            </label>
-            <textarea
-              id="contentPillars"
-              value={contentPillars}
-              onChange={(event) => setContentPillars(event.target.value)}
-              maxLength={1000}
-              rows={2}
-              placeholder="Example: product education, customer stories, usage tips, or brand community."
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="editorialRules" className={labelClass}>
-              Editorial guidelines
-            </label>
-            <textarea
-              id="editorialRules"
-              value={editorialRules}
-              onChange={(event) => setEditorialRules(event.target.value)}
-              maxLength={1200}
-              rows={3}
-              placeholder="Rules for accuracy, tone, balance, and content boundaries."
-              className={inputClass}
-            />
-          </div>
-
-          </div>
-        </details>
-        {profileMessage && <p role="status" className="text-xs text-emerald-300">{profileMessage}</p>}
+            <div className="space-y-4 rounded-xl border border-white/10 p-4">
+              <div>
+                <label htmlFor="brandContext" className={labelClass}>Brand purpose and context</label>
+                <textarea id="brandContext" value={brandContext} onChange={(event) => setBrandContext(event.target.value)} maxLength={1200} rows={3} placeholder="Describe the account's purpose, its role, and what you want to bring to your audience." className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="contentPillars" className={labelClass}>Content pillars</label>
+                <textarea id="contentPillars" value={contentPillars} onChange={(event) => setContentPillars(event.target.value)} maxLength={1000} rows={2} placeholder="Example: product education, customer stories, usage tips, or brand community." className={inputClass} />
+              </div>
+              <div>
+                <label htmlFor="editorialRules" className={labelClass}>Editorial guidelines</label>
+                <textarea id="editorialRules" value={editorialRules} onChange={(event) => setEditorialRules(event.target.value)} maxLength={1200} rows={3} placeholder="Rules for accuracy, tone, balance, and content boundaries." className={inputClass} />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="border-b border-white/[0.07] pb-4 pt-2">
-          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">02 / CAMPAIGN BRIEF</p>
-          <p className="mt-1 text-xs text-slate-500">Describe the offer, the audience, and the change you want to achieve.</p>
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+            {isBisikMode ? "02 / POST TOPIC" : "02 / CAMPAIGN BRIEF"}
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            {isBisikMode
+              ? "Enter the issue, event, or occasion BISIK should create posts about."
+              : "Describe the offer, the audience, and the change you want to achieve."}
+          </p>
         </div>
+        {isBisikMode ? (
+          <>
+            <div>
+              <label htmlFor="bisikTopic" className={labelClass}>Topic or occasion *</label>
+              <input
+                id="bisikTopic"
+                value={topic}
+                onChange={(event) => setTopic(event.target.value)}
+                required
+                maxLength={500}
+                placeholder="Example: National Heroes Day"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="bisikTopicContext" className={labelClass}>Angle or context (optional)</label>
+              <textarea
+                id="bisikTopicContext"
+                value={topicContext}
+                onChange={(event) => setTopicContext(event.target.value)}
+                maxLength={1000}
+                rows={3}
+                placeholder="Example: connect the meaning of heroism to issues young people face today."
+                className={inputClass}
+              />
+            </div>
+          </>
+        ) : (
+          <>
         {/* Product or service */}
         <div>
           <label htmlFor="product" className={labelClass}>
@@ -602,6 +510,8 @@ export default function CampaignGeneratorForm() {
             className={inputClass}
           />
         </div>
+          </>
+        )}
 
         {/* Platform and tone */}
         <div className="border-b border-white/[0.07] pb-4 pt-2">
@@ -685,45 +595,34 @@ export default function CampaignGeneratorForm() {
           <input type="checkbox" checked={useGoogleSearch} onChange={(event) => setUseGoogleSearch(event.target.checked)} className="mt-1 accent-violet-500" />
           <span>
             Search the web for sources to help with fact-checking
-            <span className="mt-1 block text-xs leading-5 text-slate-500">Useful for campaigns that involve data, trends, or current issues. Using search may add API costs.</span>
+            <span className="mt-1 block text-xs leading-5 text-slate-500">
+              {isBisikMode
+                ? "Turn this on when the post needs current facts or sources. It is off by default to conserve Google Search quota."
+                : "Useful for campaigns that involve data, trends, or current issues. Using search may add API costs."}
+            </span>
           </span>
         </label>
 
         {/* Generation progress */}
         {loading && (
           <div
-            className="rounded-xl border border-violet-500/30 bg-[#5232ff]/5 p-5"
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
+            className="rounded-2xl border border-violet-400/20 bg-gradient-to-br from-violet-500/[0.09] via-[#111019] to-[#111019] p-5 shadow-[0_16px_50px_-28px_rgba(124,58,237,0.55)]"
           >
-            <div className="flex items-center justify-between gap-3">
-              <p className="font-medium text-violet-300">
-                Generating your campaign
-              </p>
-              <span className="text-lg font-bold tabular-nums text-violet-300">
-                {Math.floor(progress)}%
-              </span>
-            </div>
-
-            <div
-              className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-800"
-              role="progressbar"
-              aria-label="Estimated campaign generation progress"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.floor(progress)}
-            >
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-violet-500 transition-[width] duration-300 ease-out"
-                style={{ width: `${progress}%` }}
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.16em] text-violet-300/80">
+                  AI studio
+                </p>
+                <p className="mt-1 text-sm text-slate-300">
+                  Working on {isBisikMode ? "your discussion ideas" : "your campaign"}
+                </p>
+              </div>
+              <AgentProgress
+                label={isBisikMode ? "Shaping topic ideas" : "Building your campaign"}
               />
             </div>
-
-            <p className="mt-3 text-sm text-slate-300">{progressStage}</p>
-            <p className="mt-1 text-xs text-slate-500">
-              The percentage is an estimate. You can cancel if it takes too
-              long.
+            <p className="mt-4 border-t border-white/[0.07] pt-3 text-xs leading-5 text-slate-500">
+              Generation time can vary with Gemini availability. Your draft will appear here when it is ready.
             </p>
 
             <button
@@ -759,7 +658,7 @@ export default function CampaignGeneratorForm() {
               Generating campaign...
             </>
           ) : (
-            "✨ Generate Campaign with AI"
+            isBisikMode ? "✨ Generate BISIK post ideas" : "✨ Generate Campaign with AI"
           )}
         </button>
       </form>
@@ -772,7 +671,7 @@ export default function CampaignGeneratorForm() {
         >
           <div>
             <p className="text-sm font-medium tracking-widest text-violet-400">
-              AI GENERATED CAMPAIGN
+              {isBisikMode ? "BISIK CONTENT IDEAS" : "AI GENERATED CAMPAIGN"}
             </p>
             <h2 className="mt-2 text-2xl font-bold">
               {result.campaignTitle}
@@ -786,7 +685,7 @@ export default function CampaignGeneratorForm() {
             </p>
 
             <h3 className="mt-5 font-semibold text-violet-300">
-              Campaign Objective
+              {isBisikMode ? "Content Goal" : "Campaign Objective"}
             </h3>
             <p className="mt-2 whitespace-pre-wrap text-slate-300">
               {result.objective}

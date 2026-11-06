@@ -130,22 +130,22 @@ export default async function CampaignDetailPage({ params }: Props) {
   }).format(campaign.updatedAt);
 
   return (
-    <main className="app-background min-h-screen px-6 py-10 text-white">
+    <main className="min-h-[calc(100vh-100px)] px-5 py-7 text-white sm:px-7 lg:px-10 lg:py-8">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/dashboard/campaigns"
-          className="text-sm text-violet-400 hover:text-violet-300"
+          className="inline-flex items-center gap-2 rounded-lg text-sm text-slate-400 transition hover:text-violet-200"
         >
           ← Kembali ke Campaign Saya
         </Link>
 
         <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-violet-400">
-            CREATIVEFLOW AI
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+            CAMPAIGN WORKSPACE
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="break-words text-3xl font-bold">
+            <h1 className="font-ui break-words text-3xl font-semibold tracking-tight sm:text-4xl">
               {campaign.title}
             </h1>
 
@@ -159,7 +159,7 @@ export default async function CampaignDetailPage({ params }: Props) {
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
+        <section className="mt-7 rounded-2xl border border-white/[0.075] bg-[#111019]/75 p-5 shadow-[0_20px_70px_-52px_rgba(0,0,0,.9)] sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">
               Informasi Campaign

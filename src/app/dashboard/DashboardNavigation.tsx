@@ -163,6 +163,7 @@ export default function DashboardNavigation({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useDismiss(menuOpen, menuRef, () => setMenuOpen(false));
@@ -172,26 +173,43 @@ export default function DashboardNavigation({
 
   return (
     <>
-      <aside className="sticky top-0 hidden h-screen w-[256px] shrink-0 flex-col border-r border-white/[0.07] bg-[#080815]/90 px-3.5 pb-5 pt-6 backdrop-blur lg:flex">
-        <Link href="/dashboard" aria-label="Go to home" className="flex items-center px-3">
-          <SparkleLogo className="size-9" />
-        </Link>
+      {/* Rendyn Animated Sidebar pattern, adapted to this navigation and its existing CSS-only dependency set. */}
+      <aside className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-white/[0.07] bg-[#080815]/85 pb-5 pt-5 backdrop-blur-xl transition-[width] duration-300 lg:flex ${collapsed ? "w-[84px] px-2.5" : "w-[256px] px-3.5"}`}>
+        <div className={`flex items-center ${collapsed ? "flex-col gap-3" : "justify-between gap-2 px-2"}`}>
+          <Link href="/dashboard" aria-label="CreativeFlow home" title="CreativeFlow" className={`flex min-w-0 items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
+            <SparkleLogo className="size-9 shrink-0" />
+            {!collapsed && <span className="truncate text-sm font-semibold tracking-tight text-white">creative-flow</span>}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setCollapsed((value) => !value)}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-pressed={collapsed}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="grid size-8 shrink-0 place-items-center rounded-lg border border-white/[0.08] text-slate-400 transition hover:border-violet-300/25 hover:bg-violet-300/[0.08] hover:text-white"
+          >
+            <svg viewBox="0 0 24 24" className={`size-4 transition-transform ${collapsed ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M14.5 5 7.5 12l7 7M19 5v14" />
+            </svg>
+          </button>
+        </div>
 
-        <nav className="mt-7 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1 [scrollbar-width:thin]" aria-label="Main navigation">
+        <nav className={`mt-7 min-h-0 flex-1 space-y-1 overflow-y-auto [scrollbar-width:thin] ${collapsed ? "px-0.5" : "pr-1"}`} aria-label="Main navigation">
           {navigation.map((item) => {
             const active = item.href ? isActivePath(item.href, pathname, item.exact) : false;
-            const base = `flex items-center gap-3.5 rounded-lg px-3.5 py-2.5 text-[15px] font-normal transition [@media(max-height:760px)]:py-2 ${active ? activeClass : idleClass}`;
+            const base = `flex items-center rounded-xl py-2.5 text-sm font-medium transition [@media(max-height:760px)]:py-2 ${collapsed ? "justify-center px-0" : "gap-3.5 px-3"} ${active ? activeClass : idleClass}`;
+            const label = <span className={collapsed ? "sr-only" : "truncate"}>{item.label}</span>;
 
             return item.href ? (
-              <Link key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={base}>
+              <Link key={item.label} href={item.href} title={collapsed ? item.label : undefined} aria-current={active ? "page" : undefined} className={base}>
                 <NavIcon name={item.icon} />
-                {item.label}
+                {label}
               </Link>
             ) : (
-              <span key={item.label} aria-disabled="true" className={`${base} cursor-default opacity-70`}>
+              <span key={item.label} title={collapsed ? `${item.label} · Soon` : undefined} aria-disabled="true" className={`${base} cursor-default opacity-60`}>
                 <NavIcon name={item.icon} />
-                {item.label}
-                <span className="ml-auto rounded-md bg-white/[0.07] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">Soon</span>
+                {label}
+                {!collapsed && <span className="ml-auto rounded-md bg-white/[0.07] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">Soon</span>}
               </span>
             );
           })}
@@ -200,7 +218,7 @@ export default function DashboardNavigation({
         <div className="mt-4 space-y-3">
           <div ref={menuRef} className="relative">
             {menuOpen && (
-              <div className="absolute inset-x-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#0e0d1f] p-3 shadow-2xl">
+              <div className="absolute bottom-full left-0 mb-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-white/10 bg-[#0e0d1f] p-3 shadow-2xl">
                 <p className="truncate text-xs text-slate-300">{email}</p>
                 <div className="mt-3 border-t border-white/[0.07] pt-3">
                   <LogoutButton />
@@ -212,29 +230,32 @@ export default function DashboardNavigation({
               onClick={() => setMenuOpen((open) => !open)}
               aria-expanded={menuOpen}
               aria-haspopup="true"
-              className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 text-left transition hover:bg-white/[0.06]"
+              title={collapsed ? name : undefined}
+              className={`flex w-full items-center rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 text-left transition hover:border-white/[0.15] hover:bg-white/[0.06] ${collapsed ? "justify-center px-0" : "gap-3 px-3"}`}
             >
-              <span className="grid size-10 shrink-0 place-items-center rounded-full border border-[#6c5bff]/50 bg-[#3a2fd6]/60 text-base font-medium text-white">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full border border-[#6c5bff]/40 bg-[#3a2fd6]/50 text-sm font-semibold text-white">
                 {name.charAt(0).toUpperCase()}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium text-slate-100">{name}</span>
-                <span className="block text-xs text-slate-500">Personal workspace</span>
-              </span>
-              <svg viewBox="0 0 24 24" className="size-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
+              {!collapsed && <>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-slate-100">{name}</span>
+                  <span className="block text-xs text-slate-500">Personal workspace</span>
+                </span>
+                <svg viewBox="0 0 24 24" className="size-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </>}
             </button>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 [@media(max-height:760px)]:p-3">
-            <p className="text-xs text-slate-400">AI Generations</p>
-            <p className="mt-2 text-xl font-semibold text-white">
-              {generationsUsed.toLocaleString("en-US")}{" "}
-              <span className="text-sm font-normal text-slate-400">/ {generationsLimit.toLocaleString("en-US")}</span>
+          <div title={collapsed ? `${generationsUsed.toLocaleString("en-US")} of ${generationsLimit.toLocaleString("en-US")} AI generations used` : undefined} className={`rounded-xl border border-white/[0.08] bg-white/[0.025] [@media(max-height:760px)]:p-3 ${collapsed ? "p-2.5" : "p-4"}`}>
+            {!collapsed && <p className="text-xs text-slate-400">AI Generations</p>}
+            <p className={`font-semibold text-white ${collapsed ? "text-center text-xs" : "mt-2 text-xl"}`}>
+              {collapsed ? "AI" : <>{generationsUsed.toLocaleString("en-US")} {" "}
+                <span className="text-sm font-normal text-slate-400">/ {generationsLimit.toLocaleString("en-US")}</span></>}
             </p>
             <div
-              className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"
+              className={`${collapsed ? "mt-2" : "mt-3"} h-1.5 overflow-hidden rounded-full bg-white/10`}
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={generationsLimit}
@@ -243,7 +264,7 @@ export default function DashboardNavigation({
             >
               <div className="h-full rounded-full bg-gradient-to-r from-[#4a3df0] to-[#6c5bff]" style={{ width: `${percent}%` }} />
             </div>
-            <p className="mt-2.5 text-xs text-slate-400">{percent}% of cumulative app usage</p>
+            {!collapsed && <p className="mt-2.5 text-xs text-slate-400">{percent}% of cumulative app usage</p>}
           </div>
         </div>
       </aside>

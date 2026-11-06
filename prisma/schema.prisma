@@ -38,3 +38,19 @@ model AIGenerationUsage {
   @@map("ai_generation_usage")
 }
 
+model CampaignPreset {
+  slug                String   @id
+  brandName           String
+  productDescription  String   @db.Text
+  targetAudience      String   @db.Text
+  platform            String   @default("Instagram")
+  tone                String   @default("Friendly")
+  brandContext        String   @db.Text
+  contentPillars      String   @db.Text
+  editorialRules      String   @db.Text
+  defaultGoogleSearch Boolean  @default(false)
+  updatedAt           DateTime @updatedAt
+
+  @@map("campaign_presets")
+}
+

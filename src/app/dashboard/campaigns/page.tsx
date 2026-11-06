@@ -26,7 +26,7 @@ export default async function CampaignsPage() {
   });
 
   return (
-    <main className="px-6 pb-20 lg:pr-7">
+    <main className="mx-auto w-full max-w-[1600px] px-5 pb-14 pt-6 sm:px-7 lg:px-10 lg:pt-8">
       <div className="mx-auto max-w-[1400px]">
         <header className="flex flex-col justify-between gap-5 border-b border-white/[0.07] pb-7 sm:flex-row sm:items-end">
           <div>

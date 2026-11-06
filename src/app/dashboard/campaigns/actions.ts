@@ -52,6 +52,9 @@ type CampaignInputFields = {
   contentPillars?: string;
   editorialRules?: string;
   useGoogleSearch?: boolean;
+  preset?: "bisik";
+  topic?: string;
+  topicContext?: string;
 };
 
 type ContentWorkflowStatus =
@@ -384,6 +387,16 @@ function validateAIResult(value: unknown): value is AIResult {
     }
 
     if (
+      (value.input.preset !== undefined && value.input.preset !== "bisik") ||
+      (value.input.topic !== undefined &&
+        (typeof value.input.topic !== "string" || value.input.topic.length > 500)) ||
+      (value.input.topicContext !== undefined &&
+        (typeof value.input.topicContext !== "string" || value.input.topicContext.length > 1000))
+    ) {
+      return false;
+    }
+
+    if (
       value.input.useGoogleSearch !== undefined &&
       typeof value.input.useGoogleSearch !== "boolean"
     ) {
@@ -436,6 +449,9 @@ function normalizeAIResult(result: AIResult): AIResult {
     }),
     ...(result.input !== undefined && {
       input: {
+        ...(result.input.preset !== undefined && { preset: result.input.preset }),
+        ...(result.input.topic !== undefined && { topic: result.input.topic.trim() }),
+        ...(result.input.topicContext !== undefined && { topicContext: result.input.topicContext.trim() }),
         ...(result.input.brandName !== undefined && {
           brandName: result.input.brandName.trim(),
         }),

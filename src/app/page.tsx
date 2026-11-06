@@ -34,12 +34,12 @@ export default function Home() {
         <div className="relative z-[1]">
           <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/15 bg-violet-300/[0.06] px-3 py-1.5 text-[11px] font-medium tracking-wide text-violet-200"><span className="size-1.5 rounded-full bg-violet-300" /> A CREATIVE WORKSPACE FOR CAMPAIGN TEAMS</p>
           <h1 className="mt-7 max-w-3xl text-[clamp(3rem,6.7vw,6.4rem)] font-semibold leading-[.98] tracking-[-.065em]">From brief,<br />to a <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-violet-400 bg-clip-text text-transparent">campaign</span><br />that moves.</h1>
-          <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">Build strategy, develop content ideas, and keep production on track in one workspace made for creative teams.</p>
+          <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">Plan a campaign, generate thoughtful content ideas, and keep every next step organized in one creative workspace.</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/register" className="rounded-xl border border-violet-200/20 bg-gradient-to-r from-[#4324ed] via-[#6d35ff] to-[#5130ee] px-5 py-3 text-sm font-semibold shadow-[0_10px_35px_rgba(91,45,255,.4)] transition hover:-translate-y-0.5 hover:brightness-125">Create your first campaign <span className="ml-2">→</span></Link>
             <Link href="/login" className="rounded-xl border border-white/10 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.04]">I already have an account</Link>
           </div>
-          <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs text-slate-500"><span><b className="mr-2 text-violet-300">✳</b>Ideas you can execute</span><span><b className="mr-2 text-violet-300">✳</b>Details for every format</span><span><b className="mr-2 text-violet-300">✳</b>A planned production flow</span></div>
+          <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs text-slate-500"><span><b className="mr-2 text-violet-300">✳</b>Ideas you can act on</span><span><b className="mr-2 text-violet-300">✳</b>Brand context that stays put</span><span><b className="mr-2 text-violet-300">✳</b>A clearer path to publishing</span></div>
         </div>
 
         <div className="relative mx-auto w-full max-w-[680px] lg:ml-auto">
@@ -71,6 +71,53 @@ export default function Home() {
             </div>
           </div>
           <div className="absolute -bottom-5 -left-5 hidden rounded-xl border border-white/10 bg-[#191722] px-4 py-3 shadow-xl sm:block"><p className="text-[10px] text-slate-500">CONTENT IDEAS</p><p className="mt-1 text-sm font-semibold">Brief ready to develop <span className="text-violet-300">✦</span></p></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="workspace-features" className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12 lg:pb-24">
+        <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <p className="text-[10px] font-semibold tracking-[.2em] text-violet-300">A WORKSPACE THAT CONNECTS THE DOTS</p>
+            <h2 id="workspace-features" className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">From the first idea to the next action.</h2>
+          </div>
+          <p className="max-w-md text-sm leading-6 text-slate-400">Keep the brief, creative direction, content ideas, and schedule close together as your campaign takes shape.</p>
+        </div>
+
+        {/* Rendyn's Bento Grid pattern, adapted to the project's existing Tailwind styles. */}
+        <div className="grid auto-rows-[minmax(180px,auto)] gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <article className="group relative isolate overflow-hidden rounded-2xl border border-violet-300/15 bg-gradient-to-br from-[#221b4c] via-[#151321] to-[#111019] p-6 transition duration-300 hover:-translate-y-0.5 hover:border-violet-200/30 sm:row-span-2 sm:p-7">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 size-64 rounded-full bg-violet-500/20 blur-[80px] transition group-hover:bg-violet-500/30" />
+            <span className="grid size-10 place-items-center rounded-xl border border-violet-200/10 bg-violet-200/[0.08] text-lg text-violet-100" aria-hidden="true">✳</span>
+            <p className="mt-6 text-[10px] font-semibold tracking-[.18em] text-violet-200/75">CAMPAIGN STUDIO</p>
+            <h3 className="mt-2 max-w-xs text-xl font-semibold leading-tight sm:text-2xl">Turn a short brief into a creative direction.</h3>
+            <p className="mt-3 max-w-sm text-sm leading-6 text-slate-400">Give your campaign a goal and audience, then develop a big idea and formats you can take into production.</p>
+            <div className="mt-7 rounded-xl border border-white/[0.08] bg-[#0a0913]/70 p-4">
+              <p className="text-[10px] font-semibold tracking-[.14em] text-slate-500">YOUR WORKFLOW</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Brief</span>
+                <span className="self-center text-violet-300" aria-hidden="true">→</span>
+                <span className="rounded-full border border-violet-300/15 bg-violet-300/[0.08] px-3 py-1.5 text-violet-100">Big idea</span>
+                <span className="self-center text-violet-300" aria-hidden="true">→</span>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Content</span>
+              </div>
+            </div>
+          </article>
+
+          <article className="relative isolate overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111019]/90 p-6 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/20">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 -z-10 size-40 rounded-full bg-cyan-400/10 blur-3xl" />
+            <p className="text-[10px] font-semibold tracking-[.18em] text-cyan-200/75">BISIK PRESET</p>
+            <h3 className="mt-3 text-lg font-semibold">Start with the topic.</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">BISIK&apos;s discussion context and editorial direction are already saved, so you can focus on the issue or occasion.</p>
+            <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-2.5 text-xs text-slate-300"><span className="size-1.5 rounded-full bg-cyan-200" /> Topic in, post ideas out</div>
+          </article>
+
+          <article className="relative isolate overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111019]/90 p-6 transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-200/20">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 -z-10 size-40 rounded-full bg-fuchsia-400/10 blur-3xl" />
+            <p className="text-[10px] font-semibold tracking-[.18em] text-fuchsia-200/75">CONTENT CALENDAR</p>
+            <h3 className="mt-3 text-lg font-semibold">Keep the next step visible.</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-400">Schedule content ideas and track whether they are still ideas, in draft, ready for review, or published.</p>
+            <div className="mt-5 flex flex-wrap gap-1.5 text-[10px] text-slate-300"><span className="rounded-md bg-white/[0.05] px-2 py-1">IDEA</span><span className="rounded-md bg-violet-300/10 px-2 py-1 text-violet-200">DRAFT</span><span className="rounded-md bg-emerald-300/10 px-2 py-1 text-emerald-200">READY</span></div>
+          </article>
         </div>
       </section>
 

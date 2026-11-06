@@ -1,10 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { useDismiss } from "./useDismiss";
 
 export default function DashboardTopBar({ email }: { email: string }) {
+  const pathname = usePathname();
   const initials = (email.split("@")[0] || "NT").slice(0, 2).toUpperCase();
   const [open, setOpen] = useState<"bell" | "account" | null>(null);
   const bellRef = useRef<HTMLDivElement>(null);
@@ -13,8 +15,25 @@ export default function DashboardTopBar({ email }: { email: string }) {
   useDismiss(open === "bell", bellRef, () => setOpen(null));
   useDismiss(open === "account", accountRef, () => setOpen(null));
 
+  const pageTitle = pathname.startsWith("/dashboard/campaigns/generate")
+    ? "Creative Studio"
+    : pathname.startsWith("/dashboard/campaigns/new")
+      ? "New campaign"
+      : pathname.startsWith("/dashboard/campaigns/")
+        ? "Campaign workspace"
+        : pathname.startsWith("/dashboard/campaigns")
+          ? "Campaigns"
+          : pathname.startsWith("/dashboard/calendar")
+            ? "Content calendar"
+            : "Overview";
+
   return (
-    <div className="flex h-[76px] items-center justify-end gap-4 px-6 lg:h-[100px] lg:pr-7">
+    <div className="flex h-[68px] items-center justify-between gap-4 border-b border-white/[0.04] px-5 sm:px-7 lg:h-[76px] lg:px-10">
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500">CreativeFlow workspace</p>
+        <p className="mt-1 truncate text-sm font-medium text-slate-200">{pageTitle}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
       <div ref={bellRef} className="relative">
         <button
           type="button"
@@ -63,6 +82,7 @@ export default function DashboardTopBar({ email }: { email: string }) {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

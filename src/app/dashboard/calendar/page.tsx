@@ -83,26 +83,26 @@ export default async function ContentCalendarPage() {
   }
 
   return (
-    <main className="app-background min-h-full px-6 py-10 text-white">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-[calc(100vh-100px)] px-5 py-7 text-white sm:px-7 lg:px-10 lg:py-8">
+      <div className="mx-auto max-w-[1400px]">
         <Link
           href="/dashboard"
-          className="text-sm text-violet-400 hover:text-violet-300"
+          className="inline-flex items-center gap-2 rounded-lg text-sm text-slate-400 transition hover:text-violet-200"
         >
           ← Kembali ke Dashboard
         </Link>
 
         <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-violet-400">
-            CREATIVEFLOW AI
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+            PLAN & PUBLISH
           </p>
-          <h1 className="mt-2 text-3xl font-bold">Kalender Konten</h1>
-          <p className="mt-2 text-slate-400">
+          <h1 className="font-ui mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Kalender Konten</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
             Atur tanggal publikasi dan status produksi ide kontenmu.
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-4 sm:p-6">
+        <section className="mt-7 rounded-2xl border border-white/[0.075] bg-[#111019]/75 p-4 shadow-[0_20px_70px_-52px_rgba(0,0,0,.9)] sm:p-6">
           <CalendarGrid items={items} initialMonth={currentBangkokMonth()} />
         </section>
       </div>

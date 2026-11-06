@@ -35,7 +35,7 @@ export default async function EditAIPage({ params }: Props) {
 
   if (!campaign.aiResult) {
     return (
-      <main className="app-background min-h-screen px-6 py-10 text-white">
+      <main className="min-h-[calc(100vh-100px)] px-5 py-7 text-white sm:px-7 lg:px-10 lg:py-8">
         <div className="mx-auto max-w-3xl rounded-2xl border border-white/[0.08] bg-[#111019] p-6">
           <h1 className="text-2xl font-bold">
             Hasil AI tidak ditemukan
@@ -89,17 +89,17 @@ export default async function EditAIPage({ params }: Props) {
   }
 
   return (
-    <main className="app-background min-h-screen px-6 py-10 text-white">
+    <main className="min-h-[calc(100vh-100px)] px-5 py-7 text-white sm:px-7 lg:px-10 lg:py-8">
       <div className="mx-auto max-w-4xl">
-        <p className="text-sm font-medium tracking-widest text-violet-400">
-          CREATIVEFLOW AI
+        <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+          CREATIVE STUDIO
         </p>
 
-        <h1 className="mt-3 text-3xl font-bold">
+        <h1 className="font-ui mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
           Edit AI Results
         </h1>
 
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
           Ubah hasil campaign sesuai kebutuhanmu, lalu simpan perubahan.
         </p>
 

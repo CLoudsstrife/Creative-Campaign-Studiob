@@ -35,26 +35,26 @@ export default async function EditCampaignPage({ params }: Props) {
   }
 
   return (
-    <main className="app-background min-h-screen px-6 py-10 text-white">
+    <main className="min-h-[calc(100vh-100px)] px-5 py-7 text-white sm:px-7 lg:px-10 lg:py-8">
       <div className="mx-auto max-w-3xl">
         <Link
           href="/dashboard/campaigns"
-          className="text-sm text-violet-400 hover:text-violet-300"
+          className="inline-flex items-center gap-2 rounded-lg text-sm text-slate-400 transition hover:text-violet-200"
         >
           ← Kembali ke Campaign Saya
         </Link>
 
         <header className="mt-6">
-          <p className="text-sm font-medium tracking-widest text-violet-400">
-            CREATIVEFLOW AI
+          <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">
+            CAMPAIGN WORKSPACE
           </p>
-          <h1 className="mt-2 text-3xl font-bold">Edit Campaign</h1>
-          <p className="mt-2 text-slate-400">
+          <h1 className="font-ui mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Edit Campaign</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
             Perbarui informasi campaign kamu.
           </p>
         </header>
 
-        <section className="mt-8 rounded-2xl border border-white/[0.08] bg-[#111019] p-6 sm:p-8">
+        <section className="mt-7 rounded-2xl border border-white/[0.075] bg-[#111019]/75 p-5 shadow-[0_20px_70px_-52px_rgba(0,0,0,.9)] sm:p-8">
           <EditCampaignForm
             campaign={{
               id: campaign.id,

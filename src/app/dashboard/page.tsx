@@ -1,195 +1,165 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { campaignPhotos } from "@/lib/campaign-visuals";
-import { SparkleLogo } from "./DashboardNavigation";
 
-// Card labels and CTAs follow the design. Replace with a campaign category field once it exists in the database.
-const cardMeta = [
-  { badge: "DIRECT RESPONSE", cta: "SHOP NOW" },
-  { badge: "BRAND", cta: "DISCOVER" },
-  { badge: "DIRECT RESPONSE", cta: "SHOP NOW" },
-  { badge: "SOCIAL PROOF", cta: "JOIN NOW" },
-];
+const stats = [
+  { key: "campaigns", label: "Total campaigns", icon: "grid" },
+  { key: "drafts", label: "Drafts in progress", icon: "draft" },
+  { key: "ai", label: "AI-generated", icon: "spark" },
+] as const;
 
-// SAMPLE: the performance numbers below are placeholders. Connect real analytics data before launch.
-const sampleMetrics = [
-  { views: "1.2M", likes: "32K", cart: "4.7%" },
-  { views: "890K", likes: "28K", cart: "3.9%" },
-  { views: "1.5M", likes: "41K", cart: "5.2%" },
-  { views: "760K", likes: "22K", cart: "3.1%" },
-];
+function StatIcon({ name }: { name: (typeof stats)[number]["icon"] }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    className: "size-5",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true as const,
+  };
 
-const iconProps = {
-  viewBox: "0 0 24 24",
-  className: "size-[18px]",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.5,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  "aria-hidden": true,
-};
+  if (name === "draft") {
+    return <svg {...common}><path d="M5 4.5h14v15H5z" /><path d="M8 9h8M8 12.5h8M8 16h5" /></svg>;
+  }
+  if (name === "spark") {
+    return <svg {...common}><path d="M12 3 14 9.5 20.5 12 14 14.5 12 21l-2-6.5L3.5 12 10 9.5 12 3Z" /></svg>;
+  }
+  return <svg {...common}><rect x="4" y="4" width="6" height="6" rx="1.5" /><rect x="14" y="4" width="6" height="6" rx="1.5" /><rect x="4" y="14" width="6" height="6" rx="1.5" /><rect x="14" y="14" width="6" height="6" rx="1.5" /></svg>;
+}
+
+function ArrowIcon() {
+  return <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  if (error || !user) redirect("/login");
 
-  if (error || !user) {
-    redirect("/login");
-  }
-
-  // Fetch campaign stats for the signed-in user.
   const [totalCampaigns, draftCampaigns, aiCampaigns, recentCampaigns] = await Promise.all([
-    prisma.campaign.count({
-      where: { userId: user.id },
-    }),
-
-    prisma.campaign.count({
-      where: {
-        userId: user.id,
-        status: "draft",
-      },
-    }),
-
-    prisma.campaign.count({
-      where: {
-        userId: user.id,
-        aiResult: { not: null },
-      },
-    }),
-
+    prisma.campaign.count({ where: { userId: user.id } }),
+    prisma.campaign.count({ where: { userId: user.id, status: "draft" } }),
+    prisma.campaign.count({ where: { userId: user.id, aiResult: { not: null } } }),
     prisma.campaign.findMany({
       where: { userId: user.id },
       orderBy: { updatedAt: "desc" },
       take: 4,
-      select: {
-        id: true,
-        title: true,
-      },
+      select: { id: true, title: true, status: true, platform: true, updatedAt: true, aiResult: true },
     }),
   ]);
 
+  const values = { campaigns: totalCampaigns, drafts: draftCampaigns, ai: aiCampaigns };
+  const firstName = user.email?.split("@")[0] || "there";
+
   return (
-    <main className="px-6 pb-10 lg:pr-7">
-      <section
-        aria-label="AI Campaign Pack"
-        className="flex items-center justify-between gap-4 rounded-xl border border-[#5b4dff]/40 bg-gradient-to-r from-[#1a1470] via-[#3324d6] to-[#2a1c9a] px-6 py-5 shadow-[0_0_44px_rgba(70,50,255,.2)]"
-      >
-        <div className="flex min-w-0 items-center gap-5">
-          <SparkleLogo className="size-9 shrink-0" />
-          <p className="font-ui text-lg font-normal text-white sm:text-xl">
-            {aiCampaigns > 0
-              ? `Your AI Campaign Pack — ${aiCampaigns} ${aiCampaigns === 1 ? "ad" : "ads"} ready`
-              : "Your AI Campaign Pack — generate your first ads"}
-          </p>
+    <main className="mx-auto w-full max-w-[1600px] space-y-8 px-5 pb-12 pt-6 sm:px-7 lg:px-10 lg:pt-8">
+      <section className="relative isolate overflow-hidden rounded-[28px] border border-violet-300/15 bg-[#11101d]/80 p-6 shadow-[0_24px_80px_-50px_rgba(109,72,255,.55)] sm:p-9 lg:p-10">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-40 -z-10 size-[420px] rounded-full bg-violet-600/20 blur-[110px]" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-44 left-1/3 -z-10 size-[360px] rounded-full bg-indigo-600/10 blur-[100px]" />
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/15 bg-violet-300/[0.06] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[.15em] text-violet-200">
+              <span className="size-1.5 rounded-full bg-emerald-300" /> Your creative workspace
+            </p>
+            <h1 className="mt-5 text-3xl font-semibold tracking-[-.04em] text-white sm:text-4xl lg:text-5xl">
+              Welcome back, <span className="bg-gradient-to-r from-violet-200 to-fuchsia-200 bg-clip-text text-transparent">{firstName}</span>
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400 sm:text-base sm:leading-7">
+              Turn your next brief into strong content ideas, then keep the work organized from draft to publishing.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/dashboard/campaigns/generate" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_32px_-14px_rgba(124,58,237,.8)] transition hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-offset-4">
+              <span aria-hidden="true">✳</span> Open AI Studio <ArrowIcon />
+            </Link>
+            <Link href="/dashboard/campaigns/new" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] px-5 py-3 text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/[0.07]">
+              New campaign
+            </Link>
+          </div>
         </div>
-        <Link
-          href="/dashboard/campaigns"
-          className="inline-flex shrink-0 items-center gap-3 rounded-lg border border-white/15 bg-[#1b1768]/80 px-5 py-2.5 text-sm text-white transition hover:bg-[#25207f]"
-        >
-          View Pack
-          <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
+      </section>
+
+      <section aria-label="Campaign overview" className="grid gap-3 sm:grid-cols-3">
+        {stats.map((stat, index) => (
+          <article key={stat.key} className="group rounded-2xl border border-white/[0.075] bg-[#111019]/75 p-5 transition duration-200 hover:-translate-y-0.5 hover:border-violet-300/20 hover:bg-[#151321] sm:p-6">
+            <div className="flex items-center justify-between">
+              <span className="grid size-10 place-items-center rounded-xl border border-violet-300/10 bg-violet-300/[0.07] text-violet-200"><StatIcon name={stat.icon} /></span>
+              <span className="text-xs text-slate-600">0{index + 1}</span>
+            </div>
+            <p className="mt-5 text-3xl font-semibold tracking-tight text-white tabular-nums">{values[stat.key].toLocaleString("en-US")}</p>
+            <p className="mt-1 text-sm text-slate-400">{stat.label}</p>
+          </article>
+        ))}
+      </section>
+
+      <section aria-label="Quick start" className="grid gap-3 lg:grid-cols-3">
+        <Link href="/dashboard/campaigns/generate" className="group relative isolate flex min-h-48 flex-col justify-between overflow-hidden rounded-2xl border border-violet-300/20 bg-gradient-to-br from-[#30216f] via-[#17142c] to-[#111019] p-6 transition duration-200 hover:-translate-y-0.5 hover:border-violet-200/35 lg:col-span-2 lg:min-h-56 lg:p-7">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-20 -z-10 size-64 rounded-full bg-violet-400/20 blur-3xl transition group-hover:bg-violet-400/30" />
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.16em] text-violet-200/80">Creative Studio</p>
+              <h2 className="mt-3 max-w-lg text-2xl font-semibold tracking-tight text-white sm:text-3xl">Start with a brief. Leave with a plan.</h2>
+              <p className="mt-2 max-w-lg text-sm leading-6 text-slate-300/75">Generate campaign concepts or turn a topic into a set of post ideas.</p>
+            </div>
+            <span className="hidden size-12 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.06] text-xl text-violet-100 sm:grid" aria-hidden="true">✳</span>
+          </div>
+          <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-violet-200">Create with AI <span className="transition-transform group-hover:translate-x-1"><ArrowIcon /></span></span>
+        </Link>
+
+        <Link href="/dashboard/calendar" className="group flex min-h-48 flex-col justify-between rounded-2xl border border-white/[0.08] bg-[#111019]/75 p-6 transition duration-200 hover:-translate-y-0.5 hover:border-cyan-200/20 hover:bg-[#151321] lg:min-h-56 lg:p-7">
+          <div>
+            <span className="grid size-10 place-items-center rounded-xl border border-cyan-200/10 bg-cyan-200/[0.06] text-cyan-100" aria-hidden="true">▦</span>
+            <h2 className="mt-4 text-lg font-semibold text-white">Content calendar</h2>
+            <p className="mt-1.5 text-sm leading-6 text-slate-400">Review scheduled ideas and move your content toward publishing.</p>
+          </div>
+          <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-slate-300 group-hover:text-white">Open calendar <span className="transition-transform group-hover:translate-x-1"><ArrowIcon /></span></span>
         </Link>
       </section>
 
-      <section
-        aria-label="Strategic Insight"
-        className="mt-4 flex items-center gap-5 rounded-xl border border-white/[0.09] bg-[#0b0a1c]/80 px-6 py-5"
-      >
-        <span className="grid size-[72px] shrink-0 place-items-center rounded-full border-2 border-[#4a3df0]/70 bg-[#1a1560]/40 shadow-[0_0_30px_rgba(74,61,240,.25)]">
-          <SparkleLogo className="size-8" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="font-ui text-xl font-normal text-white">Strategic Insight</h2>
-          <p className="mt-1.5 text-[15px] text-slate-400">
-            {totalCampaigns} campaigns · {draftCampaigns} drafts · {aiCampaigns} AI-generated
-          </p>
+      <section aria-labelledby="recent-campaigns-heading" className="overflow-hidden rounded-2xl border border-white/[0.075] bg-[#111019]/70">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.07] px-5 py-5 sm:px-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[.15em] text-violet-300/80">Workspace</p>
+            <h2 id="recent-campaigns-heading" className="mt-1.5 text-xl font-semibold tracking-tight text-white">Recent campaigns</h2>
+          </div>
+          <Link href="/dashboard/campaigns" className="inline-flex items-center gap-2 text-sm font-medium text-violet-200 transition hover:text-white">View all <ArrowIcon /></Link>
         </div>
-        <svg viewBox="0 0 200 64" className="hidden h-16 w-[200px] shrink-0 sm:block" aria-hidden="true">
-          <defs>
-            <linearGradient id="insight-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#6c5bff" stopOpacity=".5" />
-              <stop offset="1" stopColor="#6c5bff" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M0 58 L22 56 L40 52 L58 53 L76 46 L92 48 L110 40 L126 42 L142 34 L158 36 L172 24 L186 14 L200 6 V64 H0 Z" fill="url(#insight-fill)" />
-          <path d="M0 58 L22 56 L40 52 L58 53 L76 46 L92 48 L110 40 L126 42 L142 34 L158 36 L172 24 L186 14 L200 6" fill="none" stroke="#7c6bff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
-        </svg>
-      </section>
 
-      {recentCampaigns.length === 0 ? (
-        <div className="mt-4 rounded-xl border border-dashed border-white/15 p-10 text-center">
-          <p className="font-medium">No campaigns yet</p>
-          <p className="mt-2 text-sm text-slate-400">Create your first campaign to start using creative-flow.</p>
-          <Link
-            href="/dashboard/campaigns/generate"
-            className="mt-5 inline-flex rounded-lg bg-[#4a3df0] px-4 py-2 text-sm font-medium transition hover:bg-[#6c5bff]"
-          >
-            Generate campaign
-          </Link>
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
-          {recentCampaigns.map((campaign, index) => {
-            const meta = cardMeta[index % cardMeta.length];
-            const metrics = sampleMetrics[index % sampleMetrics.length];
-            const photo = campaignPhotos[index % campaignPhotos.length];
-
-            return (
-              <article key={campaign.id} className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#0b0a1c] transition hover:border-[#6c5bff]/45">
-                <Link
-                  href={`/dashboard/campaigns/${campaign.id}`}
-                  aria-label={`Open campaign ${campaign.title}`}
-                  style={{
-                    backgroundImage: `linear-gradient(180deg,rgba(8,7,17,.4) 0%,rgba(8,7,17,.12) 36%,rgba(8,7,17,.94) 100%),linear-gradient(140deg,rgba(76,49,255,.3),transparent 65%),url("${photo.url}")`,
-                  }}
-                  className="group relative block aspect-[0.52] bg-cover bg-center"
-                >
-                  <span className="absolute left-3.5 top-3.5 rounded-md bg-[#2b2678]/90 px-2.5 py-1.5 text-[10px] font-medium tracking-wide text-slate-100 backdrop-blur">
-                    {meta.badge}
-                  </span>
-
-                  <h3 className="font-ui absolute inset-x-5 top-[22%] line-clamp-4 text-[30px] font-bold leading-[1.04] tracking-tight text-white drop-shadow-lg">
-                    {campaign.title}
-                  </h3>
-
-                  <span className="absolute bottom-6 left-5 flex items-center gap-3 text-[15px] font-semibold tracking-wide text-[#8b7bff]">
-                    {meta.cta}
-                    <span className="grid size-8 place-items-center rounded-full border border-[#8b7bff]/70 transition group-hover:bg-[#8b7bff]/20" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14M13 6l6 6-6 6" />
-                      </svg>
-                    </span>
-                  </span>
-                </Link>
-
-                <div className="flex items-center justify-between border-t border-white/[0.09] px-5 py-3.5 text-[15px] text-slate-300">
-                  <span className="flex items-center gap-2">
-                    <svg {...iconProps}><path d="M7 5v14l12-7L7 5Z" /></svg>
-                    {metrics.views}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <svg {...iconProps}><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10Z" /></svg>
-                    {metrics.likes}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <svg {...iconProps}><path d="M3 4.5h2.5l2 10h10l2-7.5H7" /><circle cx="9.5" cy="19" r="1.2" /><circle cx="16.5" cy="19" r="1.2" /></svg>
-                    {metrics.cart}
+        {recentCampaigns.length === 0 ? (
+          <div className="px-6 py-12 text-center sm:py-16">
+            <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-violet-300/10 bg-violet-300/[0.06] text-xl text-violet-200" aria-hidden="true">✳</span>
+            <h3 className="mt-4 text-base font-semibold text-white">Your first campaign starts here</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-400">Create a manual brief or let AI help you develop content ideas around a topic.</p>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <Link href="/dashboard/campaigns/generate" className="rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500">Open AI Studio</Link>
+              <Link href="/dashboard/campaigns/new" className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/[0.05]">Create manually</Link>
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.06]">
+            {recentCampaigns.map((campaign) => (
+              <Link key={campaign.id} href={`/dashboard/campaigns/${campaign.id}`} className="group flex flex-col gap-3 px-5 py-4 transition hover:bg-white/[0.025] sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-white/[0.025] text-violet-200" aria-hidden="true">{campaign.aiResult ? "✳" : "↗"}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-slate-100 group-hover:text-white">{campaign.title}</span>
+                    <span className="mt-1 block truncate text-xs text-slate-500">{campaign.platform || "No platform selected"} · {campaign.aiResult ? "AI-assisted" : "Manual brief"}</span>
                   </span>
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                <span className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
+                  <span className="rounded-full border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 text-[11px] capitalize text-slate-300">{campaign.status}</span>
+                  <span className="text-xs text-slate-500">Updated {new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(campaign.updatedAt)}</span>
+                  <span className="text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-violet-200"><ArrowIcon /></span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
   );
 }
