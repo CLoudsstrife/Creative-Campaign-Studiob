@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="CreativeFlow icon">
+  <style>
+    :root { --icon-canvas: #09090b; --icon-accent: #8ba8ff; }
+  </style>
+  <rect width="40" height="40" rx="10" fill="var(--icon-canvas)" />
+  <g fill="none" stroke="var(--icon-accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5.75" y="5.75" width="28.5" height="28.5" rx="8" />
+    <path d="M14 14h12v12H14zM20 14v12M14 20h12" />
+  </g>
+</svg>

@@ -2,132 +2,174 @@ import Link from "next/link";
 import { campaignPhotos } from "@/lib/campaign-visuals";
 
 const examples = [
-  { tag: "BRAND STORY · CAROUSEL", title: "Why this product exists.", detail: "A slide framework that builds the story and a reason to believe.", mark: "01" },
-  { tag: "PRODUCT · REELS", title: "Show the benefit in 20 seconds.", detail: "A hook, visual flow, and CTA that turn attention into interest.", mark: "02" },
-  { tag: "SOCIAL PROOF · STORY", title: "Proof people trust more.", detail: "A short format for showing customer experiences and reactions.", mark: "03" },
-  { tag: "PRODUCT · DISPLAY AD", title: "One visual, one reason to click.", detail: "An ad concept focused on the main benefit and the next step.", mark: "04" },
+  { tag: "Brand story carousel", title: "Why this product exists.", detail: "The story behind the product." },
+  { tag: "Product reels", title: "Show the benefit in 20 seconds.", detail: "A hook, visual, and CTA." },
+  { tag: "Social proof story", title: "Proof people trust more.", detail: "Customer stories and reactions." },
+  { tag: "Product display ad", title: "One visual, one reason to click.", detail: "Lead with the main benefit." },
 ];
 
 const workflow = [
-  { n: "01", t: "Plan", d: "Set the goals, audience, and direction of your campaign." },
-  { n: "02", t: "Develop", d: "Build the big idea and the brief for each piece of content." },
-  { n: "03", t: "Manage", d: "Organize status, schedule, and campaign assets." },
+  { title: "Plan", detail: "Set campaign goals, audience, and direction." },
+  { title: "Develop", detail: "Shape the big idea and brief for each piece." },
+  { title: "Manage", detail: "Track status, schedule, and campaign assets." },
 ];
+
+function BrandMark({ className = "size-10" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 40 40" className={className} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5.75" y="5.75" width="28.5" height="28.5" rx="8" />
+      <path d="M14 14h12v12H14zM20 14v12M14 20h12" />
+    </svg>
+  );
+}
+
+function ArrowIcon({ className = "size-4" }: { className?: string }) {
+  return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+}
+
+function BriefIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M9 5V3.5h6V5M8 10h8M8 14h5" /></svg>;
+}
+
+function ContextIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5.5h16v11H9l-5 3v-14Z" /><path d="M8 9h8M8 13h5" /></svg>;
+}
+
+function CalendarIcon() {
+  return <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16M8 13h2M14 13h2M8 16h2" /></svg>;
+}
 
 export default function Home() {
   return (
-    <main className="app-background min-h-screen overflow-hidden text-white">
-      <nav className="relative z-10 mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
-        <Link href="/" className="flex items-center gap-3 text-[15px] font-semibold tracking-tight">
-          <span className="grid size-9 place-items-center rounded-xl border border-violet-300/20 bg-violet-400/10 text-lg text-violet-200">✳</span>
-          creative-flow
+    <main className="app-background min-h-screen overflow-x-clip text-foreground">
+      <nav aria-label="Main navigation" className="relative z-10 mx-auto flex w-full max-w-[1440px] items-center justify-between gap-2 px-5 py-4 sm:px-8 lg:px-12">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 rounded-sm text-foreground focus-visible:outline-offset-4">
+          <BrandMark className="size-10 shrink-0 text-accent" />
+          <span className="truncate text-sm font-semibold tracking-tight sm:text-[15px]">creative-flow</span>
         </Link>
-        <div className="flex items-center gap-2 sm:gap-5">
-          <span className="hidden text-xs text-slate-500 md:block">AI-powered campaign workspace</span>
-          <Link href="/login" className="rounded-lg px-3 py-2 text-sm text-slate-300 transition hover:text-white">Sign in</Link>
-          <Link href="/register" className="rounded-lg border border-violet-200/25 bg-gradient-to-r from-[#4324ed] via-[#6d35ff] to-[#5130ee] px-4 py-2.5 text-sm font-medium text-white shadow-[0_8px_32px_rgba(91,45,255,.4)] transition hover:brightness-125">Get started free <span aria-hidden="true">↗</span></Link>
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <span className="mr-2 hidden text-sm text-ink-subtle xl:block">Campaign planning workspace</span>
+          <Link href="/login" className="dashboard-interactive inline-flex min-h-10 items-center justify-center rounded-md px-3 text-sm text-ink-muted hover:bg-white/[0.04] hover:text-foreground active:scale-[0.98] focus-visible:outline-offset-2">Sign in</Link>
+          <Link href="/register" className="dashboard-interactive inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-accent px-3.5 text-sm font-semibold text-background hover:bg-accent-strong active:scale-[0.98] focus-visible:outline-offset-2 sm:px-4">Get started <ArrowIcon className="size-3.5" /></Link>
         </div>
       </nav>
 
-      <section className="relative mx-auto grid max-w-[1440px] items-center gap-14 px-5 pb-20 pt-12 sm:px-8 md:pt-20 lg:grid-cols-[.93fr_1.07fr] lg:px-12 lg:pb-28 lg:pt-24">
-        <div className="pointer-events-none absolute -left-40 top-12 size-[500px] rounded-full bg-violet-700/10 blur-[120px]" />
-        <div className="relative z-[1]">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/15 bg-violet-300/[0.06] px-3 py-1.5 text-[11px] font-medium tracking-wide text-violet-200"><span className="size-1.5 rounded-full bg-violet-300" /> A CREATIVE WORKSPACE FOR CAMPAIGN TEAMS</p>
-          <h1 className="mt-7 max-w-3xl text-[clamp(3rem,6.7vw,6.4rem)] font-semibold leading-[.98] tracking-[-.065em]">From brief,<br />to a <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-violet-400 bg-clip-text text-transparent">campaign</span><br />that moves.</h1>
-          <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">Plan a campaign, generate thoughtful content ideas, and keep every next step organized in one creative workspace.</p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/register" className="rounded-xl border border-violet-200/20 bg-gradient-to-r from-[#4324ed] via-[#6d35ff] to-[#5130ee] px-5 py-3 text-sm font-semibold shadow-[0_10px_35px_rgba(91,45,255,.4)] transition hover:-translate-y-0.5 hover:brightness-125">Create your first campaign <span className="ml-2">→</span></Link>
-            <Link href="/login" className="rounded-xl border border-white/10 px-5 py-3 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.04]">I already have an account</Link>
+      <section aria-labelledby="landing-heading" className="mx-auto grid w-full max-w-[1440px] min-w-0 items-center gap-9 px-5 pb-16 pt-7 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-10 lg:px-12 lg:pb-20 lg:pt-8">
+        <div className="min-w-0">
+          <h1 id="landing-heading" className="min-w-0 max-w-[18ch] break-words text-[clamp(2.5rem,4.6vw,4.35rem)] font-semibold leading-[1.02] tracking-[-.04em] text-foreground">
+            From brief to a campaign that moves.
+          </h1>
+          <p className="mt-5 max-w-[46ch] text-base leading-7 text-ink-muted sm:mt-6">
+            Plan briefs, develop ideas with BISIK, and schedule content on the calendar.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-2.5 sm:mt-7">
+            <Link href="/register" className="dashboard-interactive inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-accent px-4 py-3 text-sm font-semibold text-background hover:bg-accent-strong active:scale-[0.98] focus-visible:outline-offset-2 sm:px-5">
+              Start creating <ArrowIcon />
+            </Link>
+            <Link href="/login" className="dashboard-interactive inline-flex min-h-11 items-center justify-center rounded-md border border-edge px-4 py-3 text-sm font-medium text-foreground hover:bg-surface-raised active:scale-[0.98] focus-visible:outline-offset-2 sm:px-5">
+              I already have an account
+            </Link>
           </div>
-          <div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-xs text-slate-500"><span><b className="mr-2 text-violet-300">✳</b>Ideas you can act on</span><span><b className="mr-2 text-violet-300">✳</b>Brand context that stays put</span><span><b className="mr-2 text-violet-300">✳</b>A clearer path to publishing</span></div>
+          <ul className="mt-6 grid gap-2.5 text-sm text-ink-muted sm:mt-7 sm:grid-cols-3 sm:gap-3" aria-label="Workspace benefits">
+            <li className="flex items-center gap-2"><BriefIcon /> Clear briefs</li>
+            <li className="flex items-center gap-2"><ContextIcon /> BISIK context</li>
+            <li className="flex items-center gap-2"><CalendarIcon /> Calendar planning</li>
+          </ul>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[680px] lg:ml-auto">
-          <div className="absolute -inset-8 rounded-[40px] bg-[radial-gradient(ellipse,#6537ff55,transparent_67%)] blur-3xl" />
-          <div className="relative overflow-hidden rounded-[26px] border border-violet-300/20 bg-[#111019] shadow-[0_30px_100px_rgba(0,0,0,.55),0_0_55px_rgba(91,45,255,.12)]">
-            <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
-              <div className="flex items-center gap-2"><span className="grid size-7 place-items-center rounded-lg bg-violet-400/15 text-sm text-violet-200">✳</span><span className="text-xs font-medium text-slate-200">Campaign workspace</span></div>
-              <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.07] px-2.5 py-1 text-[10px] text-emerald-200">● Active draft</span>
+        <div className="min-w-0 lg:ml-auto lg:w-full lg:max-w-[680px]">
+          <div className="overflow-hidden rounded-lg border border-edge bg-surface shadow-sm">
+            <div className="flex items-center justify-between gap-3 border-b border-edge px-4 py-3.5 sm:px-5">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <BrandMark className="size-8 shrink-0 text-accent" />
+                <span className="truncate text-sm font-medium text-foreground">Campaign workspace</span>
+              </div>
+              <span className="shrink-0 rounded-md border border-edge bg-surface-raised px-2.5 py-1 text-xs text-ink-muted">Active draft</span>
             </div>
-            <div className="p-5 sm:p-7">
-              <p className="text-[10px] font-semibold tracking-[.18em] text-violet-300">BRAND CAMPAIGN · INSTAGRAM</p>
-              <h2 className="mt-3 max-w-md text-2xl font-semibold leading-tight tracking-tight sm:text-[32px]">Stories that make a brand memorable.</h2>
-              <div className="mt-5 grid grid-cols-3 gap-2 border-y border-white/[0.07] py-4 sm:gap-4">
-                {["01 · Awareness", "02 · Consideration", "03 · Action"].map((step) => <div key={step} className="text-[10px] text-slate-500 sm:text-xs">{step}</div>)}
+
+            <div className="p-4 sm:p-5">
+              <p className="mb-1 text-xs text-ink-muted">Brand campaign for Instagram</p>
+              <h2 className="max-w-xl text-xl font-semibold leading-tight tracking-[-.025em] text-foreground sm:text-2xl">Stories that make a brand memorable.</h2>
+              <ol aria-label="Campaign stages" className="mt-4 grid grid-cols-3 gap-2 border-y border-edge py-3 text-xs text-ink-muted sm:mt-5 sm:py-3.5 sm:text-sm">
+                <li>Awareness</li>
+                <li className="border-l border-edge pl-3">Consideration</li>
+                <li className="border-l border-edge pl-3">Action</li>
+              </ol>
+
+              <div className="mt-4 grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+                {examples.map((item, index) => (
+                  <article
+                    key={item.tag}
+                    style={{ backgroundImage: `linear-gradient(180deg, color-mix(in srgb, var(--background) 22%, transparent) 0%, color-mix(in srgb, var(--background) 48%, transparent) 42%, var(--background) 100%), url("${campaignPhotos[index].url}")` }}
+                    className="dashboard-interactive relative flex min-h-[174px] min-w-0 flex-col items-start justify-between overflow-hidden rounded-md border border-edge bg-cover bg-center p-3.5 hover:border-accent/40 active:scale-[0.99] sm:min-h-[184px] sm:p-4"
+                  >
+                    <span className="relative rounded-sm border border-edge bg-background px-2 py-1 text-xs font-medium text-foreground">{item.tag}</span>
+                    <div className="relative max-w-[28ch]">
+                      <h3 className="text-base font-semibold leading-5 text-foreground sm:text-lg sm:leading-6">{item.title}</h3>
+                      <p className="mt-1.5 text-xs leading-5 text-foreground/80">{item.detail}</p>
+                    </div>
+                  </article>
+                ))}
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-2">
-                {examples.map((item, index) => <article key={item.mark} style={{ backgroundImage: `linear-gradient(180deg,rgba(8,7,14,.04) 0%,rgba(8,7,14,.28) 30%,rgba(8,7,14,.96) 100%),linear-gradient(135deg,rgba(124,58,237,.25),transparent 65%),url("${campaignPhotos[index].url}")` }} className="min-h-[190px] rounded-2xl border border-violet-200/15 bg-cover bg-center p-3.5 shadow-[inset_0_0_45px_rgba(124,58,237,.12)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/30 sm:min-h-[230px] sm:p-3">
-                  <span className="text-[9px] font-semibold tracking-wide text-violet-200/75">{item.tag}</span>
-                  <span className="mt-6 block text-2xl font-light text-white/25 sm:mt-10 sm:text-3xl">{item.mark}</span>
-                  <h3 className="mt-2 text-xs font-semibold leading-4 sm:text-sm sm:leading-5">{item.title}</h3>
-                  <p className="mt-2 hidden text-[10px] leading-4 text-slate-400 sm:block">{item.detail}</p>
-                </article>)}
-              </div>
-              <p className="mt-3 flex flex-wrap justify-end gap-x-2 text-[9px] text-slate-600">Photos: {campaignPhotos.map((photo) => <a key={photo.credit} href={photo.source} target="_blank" rel="noreferrer" className="transition hover:text-violet-300">{photo.credit} · Unsplash</a>)}</p>
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-violet-300/10 bg-violet-300/[0.045] px-4 py-3">
-                <div><p className="text-[10px] text-slate-500">CREATIVE DIRECTION</p><p className="mt-1 text-xs text-slate-200">Turn brand benefits into a story that&apos;s easy to remember.</p></div>
-                <span className="text-lg text-violet-300">↗</span>
+
+              <p className="mt-3 flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-ink-subtle">
+                <span>Photos:</span>
+                {campaignPhotos.map((photo) => <a key={photo.credit} href={photo.source} target="_blank" rel="noreferrer" className="dashboard-interactive rounded-sm underline decoration-white/20 underline-offset-2 hover:text-foreground hover:decoration-current focus-visible:outline-offset-2">{photo.credit}, Unsplash</a>)}
+              </p>
+
+              <div className="mt-4 flex items-start gap-3 border-t border-edge pt-4">
+                <span className="mt-0.5 text-accent"><ContextIcon /></span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-ink-muted">Creative direction</p>
+                  <p className="mt-1 text-sm leading-5 text-foreground">Turn brand benefits into a story that&apos;s easy to remember.</p>
+                </div>
               </div>
             </div>
           </div>
-          <div className="absolute -bottom-5 -left-5 hidden rounded-xl border border-white/10 bg-[#191722] px-4 py-3 shadow-xl sm:block"><p className="text-[10px] text-slate-500">CONTENT IDEAS</p><p className="mt-1 text-sm font-semibold">Brief ready to develop <span className="text-violet-300">✦</span></p></div>
         </div>
       </section>
 
-      <section aria-labelledby="workspace-features" className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12 lg:pb-24">
-        <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-[10px] font-semibold tracking-[.2em] text-violet-300">A WORKSPACE THAT CONNECTS THE DOTS</p>
-            <h2 id="workspace-features" className="mt-3 max-w-2xl text-2xl font-semibold tracking-tight sm:text-3xl">From the first idea to the next action.</h2>
-          </div>
-          <p className="max-w-md text-sm leading-6 text-slate-400">Keep the brief, creative direction, content ideas, and schedule close together as your campaign takes shape.</p>
+      <section aria-labelledby="workspace-features" className="mx-auto w-full max-w-[1440px] px-5 pb-14 pt-4 sm:px-8 lg:px-12 lg:pb-20 lg:pt-8">
+        <div className="mb-6 flex flex-col justify-between gap-3 border-b border-edge pb-5 sm:flex-row sm:items-end sm:gap-8">
+          <h2 id="workspace-features" className="max-w-2xl text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">Keep every part of the campaign in reach.</h2>
+          <p className="max-w-md text-sm leading-6 text-ink-muted">Keep the brief, creative direction, content ideas, and schedule close together.</p>
         </div>
 
-        {/* Rendyn's Bento Grid pattern, adapted to the project's existing Tailwind styles. */}
-        <div className="grid auto-rows-[minmax(180px,auto)] gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <article className="group relative isolate overflow-hidden rounded-2xl border border-violet-300/15 bg-gradient-to-br from-[#221b4c] via-[#151321] to-[#111019] p-6 transition duration-300 hover:-translate-y-0.5 hover:border-violet-200/30 sm:row-span-2 sm:p-7">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 size-64 rounded-full bg-violet-500/20 blur-[80px] transition group-hover:bg-violet-500/30" />
-            <span className="grid size-10 place-items-center rounded-xl border border-violet-200/10 bg-violet-200/[0.08] text-lg text-violet-100" aria-hidden="true">✳</span>
-            <p className="mt-6 text-[10px] font-semibold tracking-[.18em] text-violet-200/75">CAMPAIGN STUDIO</p>
-            <h3 className="mt-2 max-w-xs text-xl font-semibold leading-tight sm:text-2xl">Turn a short brief into a creative direction.</h3>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-slate-400">Give your campaign a goal and audience, then develop a big idea and formats you can take into production.</p>
-            <div className="mt-7 rounded-xl border border-white/[0.08] bg-[#0a0913]/70 p-4">
-              <p className="text-[10px] font-semibold tracking-[.14em] text-slate-500">YOUR WORKFLOW</p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Brief</span>
-                <span className="self-center text-violet-300" aria-hidden="true">→</span>
-                <span className="rounded-full border border-violet-300/15 bg-violet-300/[0.08] px-3 py-1.5 text-violet-100">Big idea</span>
-                <span className="self-center text-violet-300" aria-hidden="true">→</span>
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">Content</span>
-              </div>
-            </div>
-          </article>
-
-          <article className="relative isolate overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111019]/90 p-6 transition duration-300 hover:-translate-y-0.5 hover:border-cyan-200/20">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 -z-10 size-40 rounded-full bg-cyan-400/10 blur-3xl" />
-            <p className="text-[10px] font-semibold tracking-[.18em] text-cyan-200/75">BISIK PRESET</p>
-            <h3 className="mt-3 text-lg font-semibold">Start with the topic.</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-400">BISIK&apos;s discussion context and editorial direction are already saved, so you can focus on the issue or occasion.</p>
-            <div className="mt-5 flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.025] px-3 py-2.5 text-xs text-slate-300"><span className="size-1.5 rounded-full bg-cyan-200" /> Topic in, post ideas out</div>
-          </article>
-
-          <article className="relative isolate overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111019]/90 p-6 transition duration-300 hover:-translate-y-0.5 hover:border-fuchsia-200/20">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-12 -z-10 size-40 rounded-full bg-fuchsia-400/10 blur-3xl" />
-            <p className="text-[10px] font-semibold tracking-[.18em] text-fuchsia-200/75">CONTENT CALENDAR</p>
-            <h3 className="mt-3 text-lg font-semibold">Keep the next step visible.</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Schedule content ideas and track whether they are still ideas, in draft, ready for review, or published.</p>
-            <div className="mt-5 flex flex-wrap gap-1.5 text-[10px] text-slate-300"><span className="rounded-md bg-white/[0.05] px-2 py-1">IDEA</span><span className="rounded-md bg-violet-300/10 px-2 py-1 text-violet-200">DRAFT</span><span className="rounded-md bg-emerald-300/10 px-2 py-1 text-emerald-200">READY</span></div>
-          </article>
+        <div className="grid min-w-0 gap-3 md:grid-cols-3">
+          {[
+            { title: "Campaign Studio", icon: BriefIcon, detail: "Set a goal and audience, then shape a big idea and the formats for production." },
+            { title: "BISIK preset", icon: ContextIcon, detail: "BISIK’s discussion context and editorial direction are saved. Focus on the issue or occasion." },
+            { title: "Content calendar", icon: CalendarIcon, detail: "Schedule ideas and follow them from draft to review to published." },
+          ].map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <article key={feature.title} className="dashboard-interactive min-w-0 rounded-lg border border-edge bg-surface p-4 hover:border-white/15 hover:bg-surface-raised sm:p-5">
+                <div className="flex items-center gap-2.5 text-accent"><Icon /><h3 className="text-base font-semibold text-foreground">{feature.title}</h3></div>
+                <p className="mt-3 text-sm leading-6 text-ink-muted">{feature.detail}</p>
+              </article>
+            );
+          })}
         </div>
       </section>
 
-      <section className="border-y border-white/[0.07] bg-white/[0.018]">
-        <div className="mx-auto grid max-w-[1440px] gap-8 px-5 py-12 sm:px-8 md:grid-cols-[.8fr_1.2fr] md:items-center lg:px-12 lg:py-16">
-          <div><p className="text-[10px] font-semibold tracking-[.2em] text-violet-300">ONE WORKFLOW</p><h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">From idea to production-ready.</h2></div>
-          <div className="grid gap-3 sm:grid-cols-3">{workflow.map((item) => <div key={item.n} className="rounded-xl border border-white/[0.07] bg-[#100f16] p-4"><p className="text-[10px] text-violet-300">{item.n}</p><h3 className="mt-3 text-sm font-semibold">{item.t}</h3><p className="mt-1.5 text-xs leading-5 text-slate-500">{item.d}</p></div>)}</div>
+      <section aria-label="Campaign workflow" className="border-y border-edge bg-surface">
+        <div className="mx-auto grid w-full max-w-[1440px] gap-5 px-5 py-8 sm:px-8 md:grid-cols-[minmax(0,.7fr)_minmax(0,1.3fr)] md:items-center lg:px-12 lg:py-10">
+          <h2 className="max-w-sm text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">From idea to production-ready.</h2>
+          <ol className="grid min-w-0 divide-y divide-edge sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {workflow.map((item) => (
+              <li key={item.title} className="py-3 sm:px-4 sm:py-1 first:sm:pl-0 last:sm:pr-0">
+                <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
+                <p className="mt-1.5 text-sm leading-5 text-ink-muted">{item.detail}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
-      <footer className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-5 py-6 text-xs text-slate-600 sm:px-8 lg:px-12"><span>creative-flow · a creative campaign workspace</span><span>Designed for ideas in motion.</span></footer>
+
+      <footer className="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-3 px-5 py-6 text-xs text-ink-subtle sm:px-8 lg:px-12">
+        <span>creative-flow, a creative campaign workspace</span>
+        <span>Designed for ideas in motion.</span>
+      </footer>
     </main>
   );
 }

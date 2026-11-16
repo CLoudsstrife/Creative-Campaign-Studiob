@@ -1,0 +1,496 @@
+{
+ "v": 1,
+ "at": "2026-11-16T11:18:42.957Z",
+ "scope": "app",
+ "summary": {
+  "fails": 107,
+  "reflex": 10,
+  "warns": 21
+ },
+ "files": {
+  "src\\app\\dashboard\\calendar\\CalendarGrid.tsx": {
+   "handlers": [
+    "onClick={() => changeMonth(-1)}",
+    "onClick={() => changeMonth(1)}"
+   ],
+   "links": [
+    "{`/dashboard/campaigns/${item.campaignId}/edit-ai`}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\calendar\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\CampaignFilters.tsx": {
+   "handlers": [
+    "onChange={(event) => setAiFilter(event.target.value)}",
+    "onChange={(event) => setPlatformFilter(event.target.value)}",
+    "onChange={(event) => setSearch(event.target.value)}",
+    "onChange={(event) => setSortBy(event.target.value)}",
+    "onChange={(event) => setStatusFilter(event.target.value)}",
+    "onClick={resetFilters}"
+   ],
+   "links": [
+    "{`/dashboard/campaigns/${campaign.id}/edit`}",
+    "{`/dashboard/campaigns/${campaign.id}`}",
+    "{campaignPhotos[index % campaignPhotos.length].source}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "ai-filter",
+    "campaign-search",
+    "platform-filter",
+    "sort-filter",
+    "status-filter"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\CopyTextButton.tsx": {
+   "handlers": [
+    "onClick={copyText}"
+   ],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\DeleteCampaignButton.tsx": {
+   "handlers": [
+    "onClick={() => setShowConfirm(false)}",
+    "onClick={() => { setMessage(\"\"); setShowConfirm(true); }}",
+    "onClick={handleDelete}",
+    "onMouseDown={(event) => { if (event.target === event.currentTarget && !isPending) { setShowConfirm(false); } }}"
+   ],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "delete-campaign-description",
+    "delete-campaign-title"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/campaigns/new"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\generate\\AgentProgress.tsx": {
+   "handlers": [],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\generate\\CampaignGeneratorForm.tsx": {
+   "handlers": [
+    "onChange={(e) => setAudiencePainPoint(e.target.value)}",
+    "onChange={(e) => setBrandName(e.target.value)}",
+    "onChange={(e) => setCampaignObjective(e.target.value)}",
+    "onChange={(e) => setCustomObjective(e.target.value)}",
+    "onChange={(e) => setCustomPlatform(e.target.value)}",
+    "onChange={(e) => setCustomTone(e.target.value)}",
+    "onChange={(e) => setPlatform(e.target.value)}",
+    "onChange={(e) => setProduct(e.target.value)}",
+    "onChange={(e) => setTargetAudience(e.target.value)}",
+    "onChange={(e) => setTone(e.target.value)}",
+    "onChange={(e) => setUsp(e.target.value)}",
+    "onChange={(event) => setBrandContext(event.target.value)}",
+    "onChange={(event) => setContentPillars(event.target.value)}",
+    "onChange={(event) => setEditorialRules(event.target.value)}",
+    "onChange={(event) => setTopic(event.target.value)}",
+    "onChange={(event) => setTopicContext(event.target.value)}",
+    "onChange={(event) => setUseGoogleSearch(event.target.checked)}",
+    "onClick={() => setIsBisikMode(false)}",
+    "onClick={() => window.print()}",
+    "onClick={() => { setSelectedIdeaIndex(index); setExpandedIdeaIndex((current) => current === index ? null : index ); }}",
+    "onClick={handleCancel}",
+    "onClick={handleSaveCampaign}",
+    "onClick={selectBisikMode}",
+    "onSubmit={handleGenerate}"
+   ],
+   "links": [
+    "{source.url}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "audiencePainPoint",
+    "bisikTopic",
+    "bisikTopicContext",
+    "brandContext",
+    "brandName",
+    "campaignObjective",
+    "contentPillars",
+    "editorialRules",
+    "platform",
+    "product",
+    "targetAudience",
+    "tone",
+    "usp"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\generate\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/campaigns"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\new\\NewCampaignForm.tsx": {
+   "handlers": [
+    "onClick={() => router.push(\"/dashboard/campaigns\")}"
+   ],
+   "links": [
+    "{formAction}"
+   ],
+   "fields": [
+    "brandName",
+    "description",
+    "platform",
+    "targetAudience",
+    "title",
+    "tone"
+   ],
+   "hooks": [],
+   "ids": [
+    "brandName",
+    "description",
+    "platform",
+    "targetAudience",
+    "title",
+    "tone"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\new\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/campaigns"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\DownloadCampaignPDF.tsx": {
+   "handlers": [
+    "onClick={() => setErrorMessage(\"\")}",
+    "onClick={handleDownload}"
+   ],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "pdf-error-description",
+    "pdf-error-title"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/campaigns",
+    "{`/dashboard/campaigns/${campaign.id}/edit-ai`}",
+    "{`/dashboard/campaigns/${campaign.id}/edit`}",
+    "{source.url}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\edit\\EditCampaignForm.tsx": {
+   "handlers": [
+    "onClick={() => router.push(\"/dashboard/campaigns\")}"
+   ],
+   "links": [
+    "{formAction}"
+   ],
+   "fields": [
+    "brandName",
+    "description",
+    "platform",
+    "targetAudience",
+    "title",
+    "tone"
+   ],
+   "hooks": [],
+   "ids": [
+    "brandName",
+    "description",
+    "platform",
+    "targetAudience",
+    "title",
+    "tone"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\edit\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/campaigns"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\edit-ai\\EditAIForm.tsx": {
+   "handlers": [
+    "onChange={(e) => updateContentIdea( index, \"description\", e.target.value ) }",
+    "onChange={(e) => updateContentIdea(index, \"format\", e.target.value) }",
+    "onChange={(e) => updateContentIdea(index, \"title\", e.target.value) }",
+    "onChange={(e) => updateField(\"bigIdea\", e.target.value)}",
+    "onChange={(e) => updateField(\"callToAction\", e.target.value) }",
+    "onChange={(e) => updateField(\"campaignTitle\", e.target.value) }",
+    "onChange={(e) => updateField(\"keyMessage\", e.target.value)}",
+    "onChange={(e) => updateField(\"objective\", e.target.value)}",
+    "onChange={(event) => updateContentIdea( index, \"keyPoints\", event.target.value .split(/\\r?\\n/) .map((point) => point.trim()) .filter(Boolean) .slice(0, 6) ) }",
+    "onChange={(event) => updateContentIdea( index, \"scheduledAt\", event.target.value ? new Date(event.target.value).toISOString() : undefined ) }",
+    "onChange={(event) => updateContentIdea( index, \"workflowStatus\", event.target.value as ContentWorkflowStatus ) }",
+    "onChange={(event) => updateContentIdea(index, \"callToAction\", event.target.value) }",
+    "onChange={(event) => updateContentIdea(index, \"caption\", event.target.value) }",
+    "onChange={(event) => updateContentIdea(index, \"concept\", event.target.value) }",
+    "onChange={(event) => updateContentIdea(index, \"hook\", event.target.value) }",
+    "onChange={(event) => updateContentIdea(index, \"visualDirection\", event.target.value) }",
+    "onClick={() => removeContentIdea(index)}",
+    "onClick={addContentIdea}",
+    "onClick={handleSave}"
+   ],
+   "links": [
+    "{`/dashboard/campaigns/${campaignId}`}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "bigIdea",
+    "callToAction",
+    "campaignTitle",
+    "keyMessage",
+    "objective"
+   ],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\campaigns\\[id]\\edit-ai\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "{`/dashboard/campaigns/${campaign.id}`}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\DashboardNavigation.tsx": {
+   "handlers": [
+    "onClick={() => setCollapsed((value) => !value)}",
+    "onClick={() => setMenuOpen((open) => !open)}"
+   ],
+   "links": [
+    "/dashboard",
+    "{item.href as string}",
+    "{item.href}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\DashboardTopBar.tsx": {
+   "handlers": [
+    "onClick={() => setOpen(open === \"account\" ? null : \"account\")}",
+    "onClick={() => setOpen(open === \"bell\" ? null : \"bell\")}"
+   ],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\layout.tsx": {
+   "handlers": [],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\LogoutButton.tsx": {
+   "handlers": [
+    "onClick={handleLogout}"
+   ],
+   "links": [],
+   "fields": [],
+   "hooks": [],
+   "ids": [],
+   "scripts": []
+  },
+  "src\\app\\dashboard\\page.tsx": {
+   "handlers": [],
+   "links": [
+    "/dashboard/calendar",
+    "/dashboard/campaigns",
+    "/dashboard/campaigns/generate",
+    "/dashboard/campaigns/new",
+    "{`/dashboard/campaigns/${campaign.id}`}"
+   ],
+   "fields": [],
+   "hooks": [],
+   "ids": [
+    "recent-campaigns-heading"
+   ],
+   "scripts": []
+  }
+ },
+ "wiring": {
+  "handlers": [
+   "onChange={(e) => setAudiencePainPoint(e.target.value)}",
+   "onChange={(e) => setBrandName(e.target.value)}",
+   "onChange={(e) => setCampaignObjective(e.target.value)}",
+   "onChange={(e) => setCustomObjective(e.target.value)}",
+   "onChange={(e) => setCustomPlatform(e.target.value)}",
+   "onChange={(e) => setCustomTone(e.target.value)}",
+   "onChange={(e) => setPlatform(e.target.value)}",
+   "onChange={(e) => setProduct(e.target.value)}",
+   "onChange={(e) => setTargetAudience(e.target.value)}",
+   "onChange={(e) => setTone(e.target.value)}",
+   "onChange={(e) => setUsp(e.target.value)}",
+   "onChange={(e) => updateContentIdea( index, \"description\", e.target.value ) }",
+   "onChange={(e) => updateContentIdea(index, \"format\", e.target.value) }",
+   "onChange={(e) => updateContentIdea(index, \"title\", e.target.value) }",
+   "onChange={(e) => updateField(\"bigIdea\", e.target.value)}",
+   "onChange={(e) => updateField(\"callToAction\", e.target.value) }",
+   "onChange={(e) => updateField(\"campaignTitle\", e.target.value) }",
+   "onChange={(e) => updateField(\"keyMessage\", e.target.value)}",
+   "onChange={(e) => updateField(\"objective\", e.target.value)}",
+   "onChange={(event) => setAiFilter(event.target.value)}",
+   "onChange={(event) => setBrandContext(event.target.value)}",
+   "onChange={(event) => setContentPillars(event.target.value)}",
+   "onChange={(event) => setEditorialRules(event.target.value)}",
+   "onChange={(event) => setPlatformFilter(event.target.value)}",
+   "onChange={(event) => setSearch(event.target.value)}",
+   "onChange={(event) => setSortBy(event.target.value)}",
+   "onChange={(event) => setStatusFilter(event.target.value)}",
+   "onChange={(event) => setTopic(event.target.value)}",
+   "onChange={(event) => setTopicContext(event.target.value)}",
+   "onChange={(event) => setUseGoogleSearch(event.target.checked)}",
+   "onChange={(event) => updateContentIdea( index, \"keyPoints\", event.target.value .split(/\\r?\\n/) .map((point) => point.trim()) .filter(Boolean) .slice(0, 6) ) }",
+   "onChange={(event) => updateContentIdea( index, \"scheduledAt\", event.target.value ? new Date(event.target.value).toISOString() : undefined ) }",
+   "onChange={(event) => updateContentIdea( index, \"workflowStatus\", event.target.value as ContentWorkflowStatus ) }",
+   "onChange={(event) => updateContentIdea(index, \"callToAction\", event.target.value) }",
+   "onChange={(event) => updateContentIdea(index, \"caption\", event.target.value) }",
+   "onChange={(event) => updateContentIdea(index, \"concept\", event.target.value) }",
+   "onChange={(event) => updateContentIdea(index, \"hook\", event.target.value) }",
+   "onChange={(event) => updateContentIdea(index, \"visualDirection\", event.target.value) }",
+   "onClick={() => changeMonth(-1)}",
+   "onClick={() => changeMonth(1)}",
+   "onClick={() => removeContentIdea(index)}",
+   "onClick={() => router.push(\"/dashboard/campaigns\")}",
+   "onClick={() => setCollapsed((value) => !value)}",
+   "onClick={() => setErrorMessage(\"\")}",
+   "onClick={() => setIsBisikMode(false)}",
+   "onClick={() => setMenuOpen((open) => !open)}",
+   "onClick={() => setOpen(open === \"account\" ? null : \"account\")}",
+   "onClick={() => setOpen(open === \"bell\" ? null : \"bell\")}",
+   "onClick={() => setShowConfirm(false)}",
+   "onClick={() => window.print()}",
+   "onClick={() => { setMessage(\"\"); setShowConfirm(true); }}",
+   "onClick={() => { setSelectedIdeaIndex(index); setExpandedIdeaIndex((current) => current === index ? null : index ); }}",
+   "onClick={addContentIdea}",
+   "onClick={copyText}",
+   "onClick={handleCancel}",
+   "onClick={handleDelete}",
+   "onClick={handleDownload}",
+   "onClick={handleLogout}",
+   "onClick={handleSaveCampaign}",
+   "onClick={handleSave}",
+   "onClick={resetFilters}",
+   "onClick={selectBisikMode}",
+   "onMouseDown={(event) => { if (event.target === event.currentTarget && !isPending) { setShowConfirm(false); } }}",
+   "onSubmit={handleGenerate}"
+  ],
+  "links": [
+   "/dashboard",
+   "/dashboard/calendar",
+   "/dashboard/campaigns",
+   "/dashboard/campaigns/generate",
+   "/dashboard/campaigns/new",
+   "{`/dashboard/campaigns/${campaign.id}/edit-ai`}",
+   "{`/dashboard/campaigns/${campaign.id}/edit`}",
+   "{`/dashboard/campaigns/${campaign.id}`}",
+   "{`/dashboard/campaigns/${campaignId}`}",
+   "{`/dashboard/campaigns/${item.campaignId}/edit-ai`}",
+   "{campaignPhotos[index % campaignPhotos.length].source}",
+   "{formAction}",
+   "{item.href as string}",
+   "{item.href}",
+   "{source.url}"
+  ],
+  "fields": [
+   "brandName",
+   "description",
+   "platform",
+   "targetAudience",
+   "title",
+   "tone"
+  ],
+  "hooks": [],
+  "ids": [
+   "ai-filter",
+   "audiencePainPoint",
+   "bigIdea",
+   "bisikTopic",
+   "bisikTopicContext",
+   "brandContext",
+   "brandName",
+   "callToAction",
+   "campaign-search",
+   "campaignObjective",
+   "campaignTitle",
+   "contentPillars",
+   "delete-campaign-description",
+   "delete-campaign-title",
+   "description",
+   "editorialRules",
+   "keyMessage",
+   "objective",
+   "pdf-error-description",
+   "pdf-error-title",
+   "platform",
+   "platform-filter",
+   "product",
+   "recent-campaigns-heading",
+   "sort-filter",
+   "status-filter",
+   "targetAudience",
+   "title",
+   "tone",
+   "usp"
+  ]
+ },
+ "scripts": {},
+ "pages": {}
+}

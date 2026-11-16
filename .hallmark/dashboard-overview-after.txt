@@ -1,0 +1,115 @@
+src\app\dashboard\campaigns\CampaignFilters.tsx
+  FAIL 19 :221 dash "–" in copy | fix: A comma, a colon, a full stop or parentheses; never a dash
+  FAIL 27 :266 motion utilities (a transition on a transform) with no motion-reduce: or motion-safe: variant anywhere | fix: Add motion-reduce: fallbacks, or put the motion behind motion-safe:
+  FAIL 48 :116 colour literal bg-[#111019] in a class on <section class="mb-6 rounded-2xl border border-…"> | fix: Lift the value into the token block (@theme or :root) and use its utility name
+  FAIL 48 :126 colour literal bg-[#0b0a11] in a class on <input class="w-full rounded-lg border border…">
+  FAIL 48 :144 colour literal bg-[#0b0a11] in a class on <select class="w-full rounded-lg border border…">
+  FAIL 48 :168 colour literal bg-[#0b0a11] in a class on <select class="w-full rounded-lg border border…">
+  FAIL 48 :192 colour literal bg-[#0b0a11] in a class on <select class="w-full rounded-lg border border…">
+  FAIL 48 :213 colour literal bg-[#0b0a11] in a class on <select class="min-w-0 flex-1 rounded-lg borde…">
+  FAIL 48 :246 colour literal bg-[#111019]/50 in a class on <div class="rounded-2xl border border-dashe…">
+  FAIL 48 :255 colour literal bg-[#5232ff] in a class on <button class="mt-6 rounded-lg bg-[#5232ff] px…">
+  FAIL 48 :266 colour literal bg-[#111019] in a class on <article class="group flex flex-col overflow-hi…">
+  REFLEX 26b :1 no :active styling anywhere | fix: All eight states; guard: not a form control, no aria-disabled anywhere
+  WARN 29 :276 glass: backdrop-blur-md over bg-black/30 on <span class="absolute right-4 top-4 grid siz…"> | fix: Solid or grained surface; elevation by lightness, shadows with offset and blur
+  WARN 74 :240 default palette instead of theme tokens: 6 distinct palette classes (text-slate-300 text-slate-500 border-violet-500 bg… | fix: Extend the Tailwind theme with the Hallmark tokens and use those names
+src\app\dashboard\calendar\CalendarGrid.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere | fix: A focus ring at 3:1 or better, instant
+  FAIL 48 :118 colour literal bg-[#0b0a11]/40 in a class on <div class="min-h-32 border-b border-r bord…">
+  FAIL 48 :138 colour literal bg-[#5232ff]/10 in a class on <Link class="block rounded-md border border-…">
+  FAIL 63 :87 arrow glued to the label "→" | fix: A verb as the label; the link already says it goes somewhere
+  REFLEX 26b :1 no :active styling anywhere
+  REFLEX 26b :1 no :disabled styling anywhere
+  WARN 74 :138 default palette instead of theme tokens: 5 distinct palette classes (text-slate-400 bg-slate-800 text-violet-100 border…
+src\app\dashboard\campaigns\[id]\DownloadCampaignPDF.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere
+  REFLEX 26b :1 no :active styling anywhere
+  WARN 74 :335 default palette instead of theme tokens: 7 distinct palette classes (bg-slate-800 bg-slate-900 bg-red-500 text-red-400)
+  WARN F24 :310 a hairline border under a wide soft shadow (border with shadow-xl or shadow-2xl) | fix: Commit to one: a defined edge, or elevation by shadow
+src\app\dashboard\campaigns\[id]\edit-ai\EditAIForm.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere
+  FAIL 48 :238 colour literal bg-[#111019] in a class on <section class="rounded-2xl border border-white…">
+  FAIL 48 :312 colour literal bg-[#111019] in a class on <section class="rounded-2xl border border-white…">
+  FAIL 48 :321 colour literal hover:bg-[#7258ff]/10 in a class on <button class="rounded-lg border border-violet…">
+  FAIL 48 :333 colour literal bg-[#0b0a11]/60 in a class on <article class="rounded-xl border border-white/…">
+  FAIL 48 :598 colour literal bg-[#5232ff] in a class on <button class="rounded-lg bg-[#5232ff] px-6 py…">
+  REFLEX 26b :1 no :active styling anywhere
+  WARN 74 :342 default palette instead of theme tokens: 11 distinct palette classes (text-slate-400 border-violet-500 text-violet-300 …
+src\app\dashboard\campaigns\[id]\edit\EditCampaignForm.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere
+  FAIL 48 :155 colour literal bg-[#5232ff] in a class on <button class="rounded-lg bg-[#5232ff] px-5 py…">
+  REFLEX 26b :1 no :active styling anywhere
+src\app\dashboard\campaigns\generate\AgentProgress.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere
+  REFLEX 26b :1 no :active styling anywhere
+src\app\dashboard\campaigns\new\NewCampaignForm.tsx
+  FAIL 26a :1 no :focus-visible styling anywhere
+  FAIL 48 :138 colour literal bg-[#5232ff] in a class on <button class="rounded-lg bg-[#5232ff] px-5 py…">
+  REFLEX 26b :1 no :active styling anywhere
+src\app\dashboard\campaigns\generate\CampaignGeneratorForm.tsx
+  FAIL 27 :655 motion utilities (animate-spin) with no motion-reduce: or motion-safe: variant anywhere
+  FAIL 48 :334 colour literal bg-[#5232ff]/[0.035] in a class on <div class="rounded-xl border border-violet…">
+  FAIL 48 :594 colour literal bg-[#111019] in a class on <label class="flex cursor-pointer items-start…">
+  FAIL 48 :608 colour literal via-[#111019] in a class on <div class="rounded-2xl border border-viole…">
+  FAIL 48 :648 colour literal bg-[#5232ff] in a class on <button class="flex w-full items-center justif…">
+  FAIL 48 :681 colour literal bg-[#0b0a11] in a class on <div class="rounded-xl border border-white/…">
+  FAIL 48 :761 colour literal bg-[#0b0a11] in a class on <article class="rounded-xl border bg-[#0b0a11] …">
+  FAIL 48 :842 colour literal bg-[#5232ff]/5 in a class on <div class="rounded-xl border border-violet…">
+  FAIL 48 :850 colour literal bg-[#5232ff] in a class on <button class="rounded-lg bg-[#5232ff] px-4 py…">
+  FAIL 54 :673 eyebrow before <h2> (tracked 0.1em at 14px) | fix: Cut it; open the section another way (craft.md, Opening a section)
+  FAIL 67 :324 letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…"> | fix: Sentence case in the body face, a step smaller, untracked: drop uppercase and the tracking-* class
+  FAIL 67 :370 letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+  FAIL 67 :518 "03 / CHANNEL & VOICE" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+  FAIL 67 :613 "AI studio" uppercase at 12px tracked 0.16em on <p class="text-xs font-semibold uppercase…">
+  FAIL 67 :673 letter-spaced at 14px tracked 0.1em on <p class="text-sm font-medium tracking-wi…">
+  WARN 49 :297 long clickable label "General campaign Build a campaign f…" without nowrap | fix: Shorten the label or set nowrap
+  WARN 49 :306 long clickable label "BISIK post ideas Plan discussion co…" without nowrap
+  WARN 74 :324 default palette instead of theme tokens: 30 distinct palette classes (border-violet-400 bg-violet-500 text-slate-400 te…
+  WARN F2 :658 three-period ellipsis in prose x1 | fix: Use a true ellipsis character (…)
+src\app\dashboard\calendar\page.tsx
+  FAIL 48 :105 colour literal bg-[#111019]/75 in a class on <section class="mt-7 rounded-2xl border border-…">
+  FAIL 54 :96 eyebrow "PLAN & PUBLISH" before <h1> (tracked 0.18em at 10px)
+  FAIL 67 :96 "PLAN & PUBLISH" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+src\app\dashboard\campaigns\[id]\edit-ai\page.tsx
+  FAIL 48 :39 colour literal bg-[#111019] in a class on <div class="mx-auto max-w-3xl rounded-2xl b…">
+  FAIL 54 :94 eyebrow "CREATIVE STUDIO" before <h1> (tracked 0.18em at 10px)
+  FAIL 67 :94 "CREATIVE STUDIO" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+src\app\dashboard\campaigns\[id]\edit\page.tsx
+  FAIL 48 :57 colour literal bg-[#111019]/75 in a class on <section class="mt-7 rounded-2xl border border-…">
+  FAIL 54 :48 eyebrow "CAMPAIGN WORKSPACE" before <h1> (tracked 0.18em at 10px)
+  FAIL 67 :48 "CAMPAIGN WORKSPACE" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+src\app\dashboard\campaigns\[id]\page.tsx
+  FAIL 48 :162 colour literal bg-[#111019]/75 in a class on <section class="mt-7 rounded-2xl border border-…">
+  FAIL 48 :184 colour literal hover:bg-[#7258ff]/10 in a class on <Link class="rounded-lg border border-violet…">
+  FAIL 48 :192 colour literal bg-[#5232ff] in a class on <Link class="rounded-lg bg-[#5232ff] px-4 py…">
+  FAIL 48 :251 colour literal bg-[#111019] in a class on <div class="rounded-2xl border border-white…">
+  FAIL 48 :285 colour literal bg-[#111019] in a class on <article class="rounded-xl border border-white/…">
+  FAIL 48 :368 colour literal bg-[#5232ff]/5 in a class on <div class="rounded-xl border border-violet…">
+  FAIL 48 :415 colour literal bg-[#111019] in a class on <section class="rounded-xl border border-white/…">
+  FAIL 48 :454 colour literal bg-[#111019] in a class on <section class="mt-8 rounded-2xl border border-…">
+  FAIL 54 :242 eyebrow "AI GENERATED CAMPAIGN" before <h2> (tracked 0.1em at 14px)
+  FAIL 67 :143 "CAMPAIGN WORKSPACE" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+  FAIL 67 :242 "AI GENERATED CAMPAIGN" letter-spaced at 14px tracked 0.1em on <p class="text-sm font-medium tracking-wi…">
+  WARN 74 :203 default palette instead of theme tokens: 15 distinct palette classes (text-violet-300 bg-amber-500 text-amber-400 text-…
+src\app\dashboard\campaigns\generate\page.tsx
+  FAIL 48 :75 colour literal bg-[#0b0a1c]/80 in a class on <section class="mt-8 rounded-2xl border border-…">
+  FAIL 54 :64 eyebrow "WORKSPACE / CREATIVE ST…" before <h1> (tracked 0.2em at 10px)
+  FAIL 67 :64 "WORKSPACE / CREATIVE ST…" letter-spaced at 10px tracked 0.2em on <p class="text-[10px] font-semibold track…">
+src\app\dashboard\campaigns\new\page.tsx
+  FAIL 48 :39 colour literal bg-[#111019]/75 in a class on <div class="mt-7 rounded-2xl border border-…">
+  FAIL 54 :30 eyebrow "CAMPAIGN WORKSPACE" before <h1> (tracked 0.18em at 10px)
+  FAIL 67 :30 "CAMPAIGN WORKSPACE" letter-spaced at 10px tracked 0.18em on <p class="text-[10px] font-semibold track…">
+src\app\dashboard\campaigns\page.tsx
+  FAIL 48 :46 colour literal bg-[#4a3df0] in a class on <Link class="inline-flex items-center justif…">
+  FAIL 48 :63 colour literal bg-[#0b0a1c]/60 in a class on <div class="rounded-2xl border border-dashe…">
+  FAIL 48 :71 colour literal bg-[#4a3df0] in a class on <Link class="mt-6 inline-flex rounded-lg bg-…">
+  FAIL 54 :33 eyebrow "WORKSPACE / LIBRARY" before <h1> (tracked 0.2em at 10px)
+  FAIL 67 :33 "WORKSPACE / LIBRARY" letter-spaced at 10px tracked 0.2em on <p class="text-[10px] font-semibold track…">
+.hallmark\before.json
+  FAIL kept :1 handlers the page had before and no longer has: onClick={() => setMenuOpen((open) => !open)} | fix: Restore each one, or record it in the stamp: /* Hallmark · dropped <item>, <item> · <the reason> */
+src\app\dashboard\campaigns\DeleteCampaignButton.tsx
+  WARN 29 :72 glass: backdrop-blur-sm over bg-black/70 on <div class="fixed inset-0 z-[100] flex item…">
+  WARN 74 :80 default palette instead of theme tokens: 7 distinct palette classes (border-red-500 text-red-400 bg-red-500 text-slate-…
+  WARN F24 :85 a hairline border under a wide soft shadow (border with shadow-xl or shadow-2xl)
+sloplint: 74 FAIL, 8 REFLEX, 14 WARN across 22 file(s).
+kept: links 15/15, fields 6/6, handlers 63/64; before 107 FAIL, 10 REFLEX, now 74 FAIL, 8 REFLEX

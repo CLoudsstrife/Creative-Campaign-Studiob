@@ -23,5 +23,35 @@
       "static_kept": "15/15 links and 6/6 fields; one duplicate sidebar account toggle handler removed by design",
       "browser_render": "not run; puppeteer-core unavailable and existing Next dev lock held by another process"
     }
+  },
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "page",
+    "date": "2026-11-16",
+    "target": "src/app/page.tsx",
+    "genre": "modern-minimal",
+    "theme": "Vantage 2/3, cobalt accent and project type retained by request",
+    "seed": "creative-campaign-studio-get-1630·8ba0570f·2026-11-16·r0",
+    "job": "sign up",
+    "shape": "product workbench",
+    "signature": "campaign workspace with existing photo assets",
+    "files": [
+      "src/app/page.tsx",
+      "src/app/globals.css",
+      "src/app/icon.svg",
+      "src/app/favicon.ico (removed)"
+    ],
+    "preserved": ["/login", "/register", "campaignPhotos data", "all Unsplash credit links", "BISIK preset references", "campaign formats", "Plan, Develop, Manage workflow"],
+    "dropped": [],
+    "copyChanges": ["condensed hero copy", "shortened campaign card descriptions", "sentence-case tags", "removed decorative 01–04 photo watermarks"],
+    "verification": {
+      "typescript": "pass",
+      "eslint": "pass",
+      "prisma_generate": "pass",
+      "build": "failed because existing Google Fonts could not be fetched",
+      "static_kept": "clean; all four recorded links retained",
+      "browser_render": "not run; puppeteer-core unavailable and existing Next dev lock held by another process"
+    }
   }
 ]
