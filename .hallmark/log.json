@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "redesign",
+    "depth": "full",
+    "scope": "app",
+    "date": "2026-11-16",
+    "target": "src/app/dashboard",
+    "genre": "modern-minimal",
+    "files": [
+      "src/app/dashboard/layout.tsx",
+      "src/app/dashboard/page.tsx",
+      "src/app/dashboard/DashboardNavigation.tsx",
+      "src/app/dashboard/DashboardTopBar.tsx",
+      "src/app/dashboard/LogoutButton.tsx",
+      "src/app/globals.css"
+    ],
+    "preserved": ["Supabase auth and redirect", "Prisma dashboard queries", "routes", "useDismiss", "logout behavior"],
+    "dropped": ["duplicate sidebar account toggle, consolidated into existing top-bar account menu"],
+    "verification": {
+      "eslint": "pass with one existing warning in Dashboard calendar; targeted changed files passed",
+      "typescript": "pass",
+      "build": "blocked by unavailable Google Fonts network fetch",
+      "static_kept": "15/15 links and 6/6 fields; one duplicate sidebar account toggle handler removed by design",
+      "browser_render": "not run; puppeteer-core unavailable and existing Next dev lock held by another process"
+    }
+  }
+]

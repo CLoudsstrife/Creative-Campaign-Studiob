@@ -37,7 +37,7 @@ export default function LogoutButton({ compact = false }: { compact?: boolean })
         type="button"
         onClick={handleLogout}
         disabled={loading}
-        className={`${compact ? "rounded-lg px-2 py-2" : "w-full rounded-lg px-3 py-2 text-left"} border border-white/[0.08] text-xs font-medium text-slate-400 transition hover:border-rose-400/20 hover:bg-rose-400/[0.06] hover:text-rose-200 disabled:opacity-50`}
+        className={`${compact ? "rounded-md px-2 py-2" : "w-full rounded-md px-3 py-2 text-left"} dashboard-interactive border border-edge text-xs font-medium text-ink-muted hover:border-danger/30 hover:bg-danger/5 hover:text-danger active:scale-[0.98] focus-visible:outline-offset-2 disabled:cursor-wait disabled:opacity-50`}
       >
         {loading ? "Signing out..." : "Sign out"}
       </button>

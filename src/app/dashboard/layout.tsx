@@ -16,9 +16,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const email = user.email ?? "Akun pengguna";
 
   return (
-    <div className="dashboard-background min-h-screen text-slate-100 lg:flex">
-      <DashboardNavigation email={email} generationsUsed={generationsUsed} generationsLimit={AI_GENERATIONS_LIMIT} />
-      <div className="min-w-0 flex-1">
+    <div className="dashboard-background min-h-screen text-foreground lg:flex">
+      <DashboardNavigation generationsUsed={generationsUsed} generationsLimit={AI_GENERATIONS_LIMIT} />
+      <div className="min-h-screen min-w-0 flex-1">
         <DashboardTopBar email={email} />
         {children}
       </div>
